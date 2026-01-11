@@ -1,0 +1,972 @@
+IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS OF VIDEO TECHNOLOGY, VOL. 11, NO. 2, FEBRUARY 2001 153
+A Robust Image Authentication Method
+Distinguishing JPEG Compression from
+Malicious Manipulation
+Ching-Yung Lin , Member, IEEE, and Shih-Fu Chang , Member, IEEE
+Abstract— Image authentication verifies the originality of an
+image by detecting malicious manipulations. Its goal is differentfrom that of image watermarking, which embeds into the imagea signature surviving most manipulations. Most existing methodsfor image authentication treat all types of manipulation equally(i.e., as unacceptable). However, some practical applicationsdemandtechniquesthat candistinguishacceptable manipulations(e.g., compression) from malicious ones. In this paper, we presentaneffectivetechniqueforimageauthenticationwhichcanpreventmalicious manipulations but allow JPEG lossy compression. Theauthenticationsignatureisbasedontheinvarianceoftherelation-ships between discrete cosine transform (DCT) coefficients at thesame position in separate blocks of an image. These relationshipsare preserved when DCT coefficients are quantized in JPEGcompression. Our proposed method can distinguish maliciousmanipulations from JPEG lossy compression regardless of thecompression ratio or the number of compression iterations. We
+describe adaptive methods with probabilistic guarantee to handle
+distortions introduced by various acceptable manipulations suchas integer rounding, image filtering, image enhancement, orscaling-recaling. We also present theoretical and experimentalresults to demonstrate the effectiveness of the technique.
+Index Terms— Authentication, digital signature, integrity,
+JPEG, manipulation, security.
+I. INTRODUCTION
+THEWELL-KNOWNadagethat“seeingisbelieving”isno
+longer true due to the availability of powerful image ma-
+nipulation software. This technical development has decreased
+the credibility that photography used to achieve.
+Development of robust image authentication techniques be-
+comes an important issue. If we consider a digital image to bemerely an ordinary bitstream on which no modification is al-
+lowed, then there is not much difference between image au-
+thentication and other message authentication problems. Twomethods have been suggested for achieving the authenticity ofdigital images: having a digital camera sign the image using a
+digital signature [8], or embedding a secret code in the image
+[26]. The first method uses an encrypted digital “signature,”which isgenerated in the capturingdevices. A digital signatureisbasedonthemethodofPublicKeyEncryption[5],[22].Apri-
+vate key is used to encrypt a hashed version of the image. This
+encrypted message is called the “signature” of the image, and
+ManuscriptreceivedSeptember11,1998;revisedOctober3,2000.Thispaper
+was recommended by Associate Editor R. Koenen.
+The authors are with the Department of Electrical Engineering, Columbia
+University, New York, NY 10027 USA.
+Publisher Item Identifier S 1051-8215(01)01246-0.itprovidesawaytoensurethatthissignaturecannotbeforged.
+This signature then travels with the image. The authenticationprocessofthisimageneedsanassociatedpublickeytodecrypt
+the signature. The image received for authentication is hashed
+and comparedto the codes of the signature. If theymatch, thenthereceivedimageisauthenticated.Thesecondmethodembedsa “watermark” in an image [15], [26], [27]. The fragile water-
+markwillusuallybedestroyedaftermanipulation.Authenticity
+is determined by examining the watermark extracted from thereceivedimage.Boththeabovemethodshavecleardrawbacks.Authenticitywillnotbepreservedunlesseverypixeloftheim-
+ages is unchanged. However, since lossy compression such as
+JPEG is often acceptable—or even desired—in practical appli-cations,anauthenticationmethodneedstobeabletodistinguishlossy compression from malicious manipulations.
+Manipulations on images can be considered in two ways:
+methodandpurpose. Manipulation methods include compres-
+sion,format,transformation,shifting,scaling,cropping,quanti-zation,filtering,replacement, etc.Thepurposeofmanipulations
+maybetransformation orattack.Theformerareusuallyaccept-
+able, and the latter unacceptable. We list two kinds of transfor-mation of representation below.
+1) Format transformation and lossless compression. Dis-
+regarding the noise caused by the precision limitationduring computation, pixel values are not changed afterthesemanipulations.Therefore,weexcludethesemanip-
+ulations in the discussion in this paper.
+2) Application-specific transformations. Some applications
+may require the lossy compression in order to satisfy theresourceconstraintsonbandwidthorstorage.Someappli-
+cationsmayalsoneedtoenhancetheimagequality,crop
+the image, change the size, or perform some other oper-ations. A common aspect of these manipulations is thatthey change the pixel values, which results in different
+levels of visual distortion in the image. Usually, most of
+these operations try to minimize the visualdistortion.
+Attacks, or malicious manipulations, change the image to a
+newonewhichcarriesadifferentvisualmeaningtotheobserver.
+One typical example is replacing some parts of the image with
+different content.
+Itisdifficultforanauthenticatortoknowthepurposeofma-
+nipulation. A practical approach is to design an authenticator
+based on the manipulation method. In this paper, we design
+an authenticator which accepts format transformation, losslesscompression,andthepopularJPEGlossycompression.Theau-thenticator rejects replacement manipulations because they are
+1051–8215/01$10.00 © 2001 IEEE154 IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS OF VIDEO TECHNOLOGY, VOL. 11, NO. 2, FEBRUARY 2001
+frequentlyusedforattacks.Ourauthenticatordoesnotaimtore-
+jectoraccept,inabsoluteterms,othermanipulationmethodsbe-causetheproblemofwhethertheyareacceptabledependsonap-
+plications.But,ifnecessary,somemanipulationscanbeclearly
+specifiedbyusers,suchasshifting,cropping,orconstantinten-sity enhancement. We will discuss this more rigorously later.The proposedauthentication techniques has been extended and
+applied to MPEG video authentication as well [16].
+Foranimage,therearesomeinvariancepropertieswhichcan
+be preserved during JPEG lossy compression. Let us considerthe relationship between two DCT coefficients of the same po-sitionintwoseparate
+blocksofanimage.Thisrelationship
+willholdevenifthesecoefficientsarequantizedbyanarbitrary
+quantizationtableinaJPEGcompressionprocess.Inthispaper,wewillusethisinvariancepropertyandproposearobustauthen-ticationmethodwhichcandistinguishmaliciousmanipulations
+from JPEG lossy compression.
+A comprehensible list of multimedia authentication research
+papers can be found in [17]. Bhattacha and Kutter proposedan authentication method which extracts “salient” image fea-turepointsbyusingascaleinteractionmodelandMexican-Hat
+wavelets[1].Theygenerateadigitalsignaturebasedontheloca-
+tionsof thesefeaturepoints. Theadvantageof thistechniqueisitscompactsignaturelength.But,theselectionprocessandrele-vanceoftheselectedpointsarenotclear.Thistechniquemaynot
+beadequatefordetectingsomecrop-and-replacemanipulations
+inside the objects. Its robustness to lossy compression is alsounclear. Queluz proposed techniques to generate digital signa-turesbasedonmomentsandedges[20].Momentfeaturesignore
+the spatial distribution of pixels. Images can be easily manipu-
+latedwithoutchangingtheirmoments.Edge-basedfeaturesmaybe a good choice for image authentication because the contourofobjectsshouldkeepconsistentforacceptablemanipulations.
+However, several issues have to be further solved such as the
+reduction of signature length, the consistency of edge detector,and the robustness to color manipulations. Fridrich proposed arobust watermarking technique for authentication [6], [7]. He
+divided images into
+blocks. For each block, quasi-VQ
+codes are embedded by the spread spectrum method [3]. Thistechniqueisrobusttomanipulations.But,itcannotdetectsmallarea modification. The error between the extracted watermark
+and the reconstructed quasi-VQ codes is too large after JPEG
+compression[7].Therefore,thistechniquewouldbehardtodis-tinguish malicious manipulations from JPEG compressions.
+This paper is organized as follows. We briefly review the
+JPEG system in Section II. In Section III, a general system for
+authentication will be proposed. Also, we will describe howto control parameters for different practical uses. A simple ex-ample is shown in this section. We will present rigorous per-
+formance analysis in Section IV. Experimental results will be
+shown in Section V. In Section VI,we will present conclusionsand discuss future work.
+II. R
+EVIEW OF JPEG L OSSYCOMPRESSION
+In this section, we briefly review the JPEG lossy compres-
+sionstandard.AttheinputtotheJPEG[25]encoder,thesourceimage,
+,isgroupedinto nonoverlapping blocks,.Eachblockissentsequentiallytothediscretecosine
+transform (DCT). Instead of representing each block, ,a sa
+matrix,wecanrewriteitasa vectorfollowingthe
+“zigzag”order[25].Therefore,theDCTcoefficients, ,ofthe
+vector, ,can beconsideredas alineartransformationof
+with a transformation matrix ,s.t.,
+(1)
+Each of the 64 DCT coefficients is uniformly quantized with
+a 64-element quantization table . In JPEG, the same table is
+used on all blocks of an image. (For color images, there couldbe three quantization tables for YUV domains, respectively.)
+Quantizationisdefinedasthe divisionof eachDCT coefficient
+by its corresponding quantizer step size, and rounding to thenearest integer:
+(2)
+where . In . (2), is the output of the quantizer.
+We define , a quantized approximation of ,a s
+(3)
+Inaddition toquantization, JPEGalso includesscanorder con-
+version, dc differential encoding, and entropy coding. Inverse
+DCT(IDCT)isusedtoconvert tothespatial-domainimage
+block
+(4)
+All blocks are then tiled to form a decoded image frame.
+Theoretically, the results of IDCT are real numbers. How-
+ever, the brightness of an image is usually represented by an8-bit integer from 0 to 255, and thus a rounding process map-
+ping those real numbers to integers is necessary. We found that
+popular JPEG softwares, such as PhotoShop, xv, etc., use theinteger-rounding functions in several steps of their DCT andIDCT operators in order to save computation or memory. The
+input and output of their DCT and IDCT operators are all in-
+tegers. This approximation may not introduce too much visualdistortionbutmayaffecttheauthenticationsystemperformancethat we will discuss in more detail in Section IV.
+III. A
+UTHENTICATION SYSTEM
+The proposed authentication method is shown in Fig. 1. Our
+method uses a concept similar to that of the digital signaturemethod proposed by Friedman [8], but their technique doesn’tsurvive lossy compression. A signature and an image are gen-
+erated at the same time. The signature is an encrypted form of
+the feature codes or hashes of the image. When a user needsto authenticate the image he receives, he should decrypt thissignature and compare the feature codes (or hashed values) of
+this image to their corresponding values in the original signa-
+ture.Iftheymatch,thisimageissaidtobe“authenticated.”ThemostimportantdifferencebetweenourmethodandFriedman’s“trustworthy camera” is that we use invariance properties inLIN AND CHANG: ROBUST IMAGE AUTHENTICATIONMETHOD DISTINGUISHING JPEG COMPRESSION FROM MALICIOUS MANIPULATION 155
+Fig. 1. Signature generator and authentication process.
+JPEGlossycompressionasrobustfeaturecodesinsteadofusing
+hashes of raw images.
+A. InvariantsofanImageBeforeandAfterJPEGCompression
+From the compression process of JPEG, we have found that
+some quantitative invariants and predictable properties can beextracted. Two steps in the JPEG compression process reduce
+the required bits representing an image: 1) quantization and
+rounding of the DCT coefficients and 2)entropy coding . The
+secondstepisalosslessoperation.Thefirststepisalossyoper-ationwhichalterspixelvaluesbutkeepsimportantvisualchar-
+acteristics of the image. Therefore, if robust feature codes are
+expectedforauthentication,theymustsurvivethisstep.Thefol-lowing theorems provide a technical basis for generating such
+robust feature codes. Proofs of these theorems are included in
+the Appendix.
+Theorem 1: Assume
+and are DCT coefficient
+vectors of two arbitrary nonoverlapping blocks of image
+, and is the quantization table of JPEG lossy compres-
+sion. and , where is
+the total number of blocks, define
+and where is defined as
+. Then,
+the following properties must be true:
+1) if , then ;
+2) else if , then ;
+3) else , then .
+In summary, because all DCT coefficient matrices are di-
+vided by the same quantization table in the JPEG compressionprocess, the relationship between two DCT coefficients of thesamecoordinatepositionwillnotchangeafterquantization.Theonlyexceptionisthat“ greaterthan ”or“lessthan”maybecome
+“equal” due to the rounding effect of quantization. The above
+theoremassumesthatthesamequantizationtableisusedforthe
+whole image. Theorem 1 is valid no matter how many recom-pression iterations and whatthe quantization tables are used.
+For practical implementations, the quantization table can be
+extracted from the compressed file or estimated from the DCT
+coefficientsofdecompressedfile.NotethatTheorem1onlypre-servethesignofcoefficientdifferences.Thefollowingtheoremextendsittopreservethedifferencevalues,withvariousresolu-
+tions.
+Theorem 2: Use the parameters defined in The-
+orem 1. Assume a fixed threshold
+., define
+. Then, if
+elsewhere(5)
+else if ,
+elsewhere(6)
+else
+or elsewhere.(7)
+InTheorem2, isadesignatedthresholdvalueusedtobound
+the difference of two DCT coefficients of the same position in156 IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS OF VIDEO TECHNOLOGY, VOL. 11, NO. 2, FEBRUARY 2001
+Fig. 2. (a) Feature extraction process. (b) Authentication comparator.
+two separate blocks of an image. In contrast, Theorem 1 only
+describestheinvariancepropertyofthesignof .Wecan
+consider Theorem 1 as a special case of Theorem 2 (with set
+to be 0). Several different ’s (e.g., a series of binary division
+of a fixed dynamic range) can be used for a single authentica-tionsystemofdifferentlevelsofstrength.BasedonTheorem2,
+wecanpredictthedifferencerelationshipsbetweencoefficients
+after compression. Extension of the invariance property to thecase of variable quantizationtable is includedin Appendix I.
+As shown in Fig. 1, by applying Theorem 1 and Theorem 2,
+we can extract feature codes
+of an image from the relation-
+shipsbetweentwoDCTcoefficientsofthesamepositionintwoseparateblocks.Thesefeaturecodesarethenencryptedasasig-nature.Fortheauthenticationprocess,auserhastocalculatethe
+DCTcoefficientsoftheimage,andcomparethemtothefeatures
+decryptedfromthedigitalsignature
+.This imageissaid tobe
+authenticatedifalltheDCTcoefficientrelationshipssatisfythecriteria predicted by the features of the original image.
+B. Image Analyzer: Feature Extraction
+Fig. 2(a) is the flowchart of the feature extraction process.
+First, a digital image
+is sent into the image analyzer. Each
+block of thisimageis thentransformed tothe DCTcoef-
+ficients.
+There are three loops for generating feature codes:1)Loop 1:Generate sets of feature codes, ,
+to.Eachsetusesdifferent and,where isdefined
+inTheorem2, isthenumberofDCTcoefficientscom-
+pared in each block pair.
+2)Loop 2:Iterate over all possible block pairs, to
+,where isthetotalnumberofblocksintheimage.
+3)Loop 3:Iterate over each of the selected coefficient
+pairs.
+InLoop1, setsoffeaturecodesaregenerated.Foreachset,
+parameter represents how many bits are generated in each
+block. Parameter represents the precision threshold used in
+Theorem 2. The first set protects the sign of .
+From the second set to the last set, ’s are set to protect the
+magnitude of with increasing accuracy. We will discuss
+how to define the thresholds later in this section.
+In Loop 2, we need to form DCT blocks into pairs. As
+defined in Theorem 2, the DCT coefficient difference betweenblock
+and block is computed. Let us denote one set of
+blocks and another set of blocks
+. For example, can be all the even
+blocks, ,andcanbealltheoddblocks,
+. The formation of all blocks in an image
+intopairscanbebasedonanarbitrarymappingfunction ,as
+long as the following conditions are kept:
+(8)LIN AND CHANG: ROBUST IMAGE AUTHENTICATIONMETHOD DISTINGUISHING JPEG COMPRESSION FROM MALICIOUS MANIPULATION 157
+and
+(9)
+If redundancy is allowed, andeach may contain more
+blocks than . The choice of the mapping function can
+serve as a secret parameter, used to enhance the security of au-
+thenticator.Forexample,theimageanalyzerusesaseedtogen-
+erate the mapping function and provides the seed with the
+featurecodestotheauthenticator.Eachauthenticatorcantrans-form this seed into the mapping function. This transformation
+method will not be published. Therefore, each manufacturer of
+theimageauthenticatorcanimplementhis/herowntransforma-tion method.
+InLoop3,foreachblock,wecomparethe
+selectedvalues
+(indexed in the zigzag order) in the DCT domain. Both dc and
+acvaluesintheDCTdomainareused.Atfirst,thedifferenceofdc values in block
+and, , is used for comparison.
+If this value is smaller than , then a feature code bit is
+addedtotheendofthepreviousfeaturecode.Otherwise,ifthis
+valueisgreaterorequalto ,wewillassign .(Weclassify
+two cases, “greater” and “equal,” to the same type because theprobability of
+is quite small. If they are classi-
+fied into three different types, i.e., “greater,” “equal,” and “less
+than,”twobitsshouldbeusedinthiscase.Thiswillresultintheincreasedlengthoffeaturecodes.)Thereafter,thedifferencesin
+selected ac values are compared with
+. Only ac differ-
+ences,areusedinthisprocess.AfterLoops1,2,and3arecom-pleted,thefeaturecodes
+ofthisimagearegenerated.Usually,
+theselected positions are located in the low and middle fre-
+quencybandsforthefollowingtworeasons:1)theyareusually
+larger than the high-band coefficients because of energy con-centration and 2) their values are usually conserved after JPEGcompression because the values in the quantization table
+in
+these bands are small.
+1) Precision Thresholds and Other Considera-
+tions:Theoretically, threshold values can be determined
+arbitrarily, and they may vary for different and. In our
+system, for the first set, all are set to zeros. We use
+a binary division method to set thresholds for other sets.Assume the dynamic range of
+is from to.I f
+we know that in the first set, then we can set
+the threshold in the second set as . Furthermore, if we
+know that this value in the second set, the
+threshold in the third set can be set as . These thresholds
+result in dynamic binary decision ranges. This method protects
+the magnitude of with an increasing accuracy as
+more sets are being used. The larger is, the more precisely
+will the coefficient differences be limited.
+Define a constant which is a power of 2, and the threshold
+used in the th set of block at the position is .A
+closed form of is
+(10)
+To simplify the notation in later discussions, we use
+instead.In addition to the parameters used in the three loops, some
+extrainformationabouttheimageisnecessaryfordefeatingat-tacks.Inourauthenticationsystem,apossibleattackistomake
+aconstantchangetoDCTcoefficientsatthesamelocationinall
+blocks.Thiswillnotchangethedifferencevaluesbetweenpairsof DCT coefficients from two different blocks. For instance,raisingtheimageintensityuniformlychangesthedcparameter
+in all blocks and defeats the previous approach. To defeat this
+attack, we record the mean value of DCT coefficients in each(selected) position for all blocks in the signature. These addi-tionalfeaturecodesneednomorethan64bytes.WhentheDCT
+coefficients are changed by constant values, they will be easily
+detected by the deviation of their mean values.
+C. Authentication Process
+Fig. 1 includes the authentication process. It is composed of
+three parts. First, the received image
+or, has to be trans-
+formedtotheDCTdomain, .ThisinvolvestheDCTtransform
+blockbyblockifarawimage isused.IfaJPEGcompressed
+image is used, a parser has to be used for reconstructing the
+Huffman TableandQuantization Table . The signature has
+to be decrypted to reconstruct feature codes . After and
+areavailable,theywillbesenttotheauthenticationcomparatorinordertodeterminewhetherthisimagehasbeenmanipulated.
+The Authentication Comparator is shown in Fig. 2(b). Sim-
+ilartothethreeloopsintheimageanalyzer,therearealsothreecorrespondingloopshere.InLoop1,thenumberofloops
+can
+be different from the one used in the Image Analyzer. Fewer
+loops may be used. Loop 2 and Loop 3 are the same as those
+usedintheImageAnalyzer.Insidetheseloops,wehavetocom-pareeachoftheDCTcoefficientrelationshipsobtainedfromtheoriginal image and that of the image received.
+From Theorem 2, we can define
+isaninteger
+isnot aninteger
+and
+isnot aninteger
+and .(11)
+(Notethat isafunctionof ,,and.)ObservefromFig.2(b),
+if , thatis, , then
+must be satisfied. Therefore, if , we know
+that some parameters of block ormust have been modified.
+Similar results can be obtainedin the caseof .
+However, some integer rounding noise may be introduced if
+thefollowingcasesoccur:1)theimageisconvertedbacktoin-
+tegral pixel values during the decode–reencode process; 2) thecompressorandthesignaturegeneratoruse differentchromaticdecimationalgorithmsforcolorimages;or3)theJPEGencoder
+calculates imprecise DCT. Therefore, we must introduce a tol-
+erancebound
+intheauthenticator.Weaugmentthecomparing
+process with the following position.158 IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS OF VIDEO TECHNOLOGY, VOL. 11, NO. 2, FEBRUARY 2001
+Proposition1: Blockorcanbesaidtobemanipulatedif
+(12)
+forthecaseof [orequivalently ],
+or if
+(13)
+forthecaseof [orequivalently ].
+Thetolerance isdeterminedbythelevelofintegerrounding
+errors. Optimal levels of the rounding tolerance will be dis-
+cussed in Section IV-A.
+Notethattheresultofauthenticationcanbeabinaryindicator
+trueorfalse forthewholeimage,oritmayindicatetheauthen-
+ticity or forgery of specific parts in an image.
+1) Other Considerations: Manipulation in specific block
+pairs can be located by the proposed technique. However,the authenticator using nonoverlapping sets in (9) will not be
+able to identify which block in the pair has been modified.
+If identification of specific blocks is needed, we can useoverlappingsets in (9). Identifying local changesis very usefulto some applications in which both global and local contents
+are important. For instance, in a picture of ten people, even if
+a man’s face has been substituted by that of another personor has been removed, another part of the image can still beverifiedtoauthenticatetheappearanceoftheotherninepeople.
+Another advantage is that the system can verify authenticity in
+a selected area (e.g., some news agency may cut out boundaryareas of file photos).
+Boundary cropping and/or position shifting are often per-
+formed on images to suit application needs. The proposed au-
+thenticationsignatureissensitivetocroppingandshifting.How-ever, for cropping, image block pairs that are not affected bycropping may still be authenticated. If cropping is allowed in
+some situations, we can design a robust digital signature with
+carefully selected mapping function, e.g., selecting pairs fromadjacentblocks.Forshifting,ifnoDCTquantizationisdoneonthe shifted image, e.g., shifting in the pixel domain only), the
+shiftedimagecanbeadjustedtotherightpositionthatresultsin
+the matched DCT block structure. Then, the DCT domain sig-nature can be verified.
+Constant intensity change in the image is sometimes ex-
+pected, especially when the image is too dark or too bright.
+Our proposedauthenticatorsolvesthis problem byrelaxing thechange threshold
+of the mean valueof dccoefficients.
+Scaling is a common operation in many situations. For in-
+stance,ausermayscanapicturewithhighresolution,andthen
+down-sampleittoanappropriatesize.Inthiscase,thesignaturegeneratorhastorecordtheoriginalsizeoftheimage.Then,theauthenticatorcanresizetheimagetoitsoriginalsizebeforethe
+authentication process. Because the distribution of these sam-
+pling/interpolation noises can be modeled by a Gaussian func-tion whose variance is not too large [11], there will be no largechanges in the DCT coefficients. Similar to the recompression
+distortions, these changes can be accepted by setting adequate
+tolerance values.
+Other lossy compression techniques such as wavelet-based
+methods or color–space decimation methods can be also con-sidered as noise-adding processes. Similarly, we can use larger
+tolerances for these cases. Filtering, such as low-pass filteringand edge enhancement, may cause more visual changes and
+may cause challenges to the proposed technique. However, if
+thechangeinpixelvaluesisnottoolarge,wecanconsiderthemas some kind of noise and use adequate tolerance values. Thisstrategyofadjustingtolerancelevelscanalsobeappliedtoother
+operations as well.
+The authenticator is sometimes expected to pass only those
+images that are compressed by JPEG up to a certain compres-sion ratio or quality factor. For example, if the image is JPEG
+compressedbelowthe20:1ratio,theimageisacceptable.Oth-
+erwise, if it is compressed more, it will fail the test. The argu-ment for failing highly compressed images is that such imagesusually have poor quality and should not be considered as au-
+thentic. To satisfy this need, we can apply one of the following
+methods.Thefirstoneistocalculatethecompressionratiofromtherawimagesizeandthecompressedfilesize.Ifitistoohigh,theauthenticatorcanrejectitbeforeanyauthenticatingprocess.
+The second method is to calculate the increase of the number
+of the “equal” signature bits after compression. The numberof “equal” signature bits increases if the image is compressedmore. We can set a threshold on this change to reject those im-
+agesthat havetoomany“equal” coefficientsin theblock pairs.
+D. Encryption, Decryption, and Signature Length
+Thefeaturecodesareencryptedbyasecretprivatekeyofthe
+Public Key method. As described in Section III-B, the length
+of feature codes is determined by the comparison bits
+, the seeds of the block pair mapping function and
+selected DCT positions, and the DCT mean values (see Sec-
+tionIII-B-1).Forinstance,assumetheimagesizeis
+(bytes). In a scenario where 10 bits of feature codes are
+used for each block pair, i.e., and . Assume
+both the seeds are 2 bytes long, and 6 DCT coefficient aver-
+ages are recorded, then the length of feature codes will be
+(bytes). The
+signature length can be further reduced with the reduction of
+the authenticator’s effectiveness. We will analyze this tradeoff
+in detail in Section IV.
+The Public Key algorithm is used so that any user can easily
+access a public key to decrypt the signature. The most famous
+public key algorithm is Rivest, Shamir, and Adleman (RSA)
+[12],[23].ThekeylengthofRSAisvariable,butthemostcom-monlyusedlengthis512bits[23],whilethemessageblocksizemust be smaller than the key length. If we choose to divide the
+feature codes into
+-bit blocks, it needs RSA
+calculations (where denotes the integer ceiling function).
+Assume the output length of each RSA is , then the signature
+lengthwillbe bits.Forinstance,inprevious
+example, if and are used, then the RSA al-
+gorithm has to be run 12 times and the signature length will be767 bytes. It is about
+of the original image size.
+A problem with Public Keyalgorithms is the speed. In hard-
+ware, the RSA Public Key algorithm is 1000 times slower than
+the DES Secret Key algorithm. The difference is about 100times in software [23]. Therefore, if efficiency is critical, wecan choose the Secret Key algorithm instead of the Public KeyLIN AND CHANG: ROBUST IMAGE AUTHENTICATIONMETHOD DISTINGUISHING JPEG COMPRESSION FROM MALICIOUS MANIPULATION 159
+TABLE I
+TWODCT COEFFICIENT BLOCKS FOR A /49/54 /2 /56AREACUT FROM THE IMAGE“LENNA”( RIGHTEYEREGION)
+TABLE II
+DCT COEFFICIENTS IN TABLEIQUANTIZED BY A UNIFORMMATRIX
+algorithm. The drawback is that users have to keep their secret
+keys safe, and the image can be authenticated by only the few
+people who own the secret key.
+Implementation of a Public Key Infrastructure (PKI) is nec-
+essaryforpracticalapplication.APKIisthesetofsecurityser-vices that enable the use and management of public-key cryp-
+tography and certificates, including key, certificate, and policy
+management[10].Iftheimageisgeneratedfromahardwarede-vice, such as digital camera or scanner, then the manufacturercan serveas a Certification Authority(CA) issuing alluser pri-
+vate–public key pairs. Private keys can be either embedded in
+the hardware device or issued to the driver software while cus-tomers register their information. Any end entity can examinethe authenticity of images by requesting the public key and the
+authenticationsoftwarefromthemanufacturer.Similarly,ifthe
+image is generated by a Content Holder, he/she can ask a pri-vate-public key pairs from any CA, which provides both keypairs and authentication software. The details of the PKI and
+the related standard
+can be found in [9].
+E. Example: A Small Image
+We will use a small image as an example to illus-
+trate the proposed authentication technique. This image is di-
+vided into two blocks, from which DCT coefficients are
+computed.Therefore, .ItsDCTcoefficientsareshownin
+Table I. For simplicity, only integral values of them are shown
+in the table.
+First, let us consider the case of , i.e., only one
+threshold value is used for feature code generation.
+Assume the first ten coefficients in the zigzag order of the twoblocks are compared. In this case, the length of the featurecodes,
+, will be 10 bits ( ) .
+Therefore, the first bit of the feature codes is 0. The
+second coefficients in the zigzag order are: and
+, respectively. Since , the
+second bit of the feature codes is 1. After ten iterations, thefeature codes,
+, are: 0111100110.
+Consider longer feature codes, we set , ,
+, , and . The reason for a decreasing
+value of is that the lower frequency coefficients need more
+protectionthanthehigherfrequencyones.Thethresholdvalues
+(’s) are 0, 128, 64, and 32 (in the absolute form). The first 10
+bits of are the same as the previous case. For the next 6 bits,
+the first six coefficients are compared again using .
+For example, since , the 11th bit
+0. , so the 12th bit 1. The final
+featurecodes are: 01111001100100010110.The length of
+is .
+Table II shows the DCT coefficients after quantization (i.e.,
+and)withauniformmatrixof16.Thisistosimulatethe
+quantization process in JPEG. Using Fig. 2(b), we authenticatethecompressedimagebycomparing
+tothefeaturecodes
+. For instance, and , this
+valueisauthenticatedtobetrue.Similarprocesscontinuesuntilall feature codes are used. Note if the quantization table is not
+known to the authenticator, the first set of codes (with
+)
+can still be verified.
+Consider an example of manipulation. Assume and
+aremodifiedfrom72and26to172and126.( canbe
+obtained from the IDCT of Table I.) Assume we use the same
+quantization matrix. Repeating the above process, the authen-ticator will detect the manipulation due to the mismatch of thefourth bit of the feature codes.160 IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS OF VIDEO TECHNOLOGY, VOL. 11, NO. 2, FEBRUARY 2001
+TABLE III
+PROPERTIES OF DIFFERENT SYSTEMVARIABLES FROM VIEWPOINTS OF DIFFERENT PARTIES
+F. Color Images
+In the JPEG standard, color images are considered to be in
+the format. Chromatic components are usu-
+allydown-sampledattherateof2:1(horizontaldirectiononly)
+or 4:1 (one-half in both horizontal and vertical directions). Toauthenticateacolorimage,wefirstdown-samplethechromaticcomponents with the samplingrate 4:1. Then,we generate the
+featurecodesof
+,,inthesamewayasdescribedearlier.
+In the authenticator, if the chromatic components are sampledby2:1,theyaresubsampledagainintheotherdirectioninorderto obtain 4:1 subsampled color components.
+IV. P
+ERFORMANCE ANALYSIS
+The image authenticator is a manipulation detector with
+two types of error involved: missandfalse alarm [21]. “Miss”
+refers to the situation in which an image is manipulated by
+unacceptable manipulations but the system reports the image
+as authentic. “Miss” is also called Type II error in Hypotheses
+Testing. “False alarm” means that the system reports the exis-tence of manipulation while the image is, in fact, not modified
+by unacceptable manipulations. It is also called a Type I error .
+In our authentication system, the test is based on block pairs.For each block pair, we perform the following test:
+—the
+pixels in the image block pair are not modified, or modified
+to new values that can be obtained by the JPEG compression
+processes , versus —the pixels in the image block pair are
+modified to new values that cannot be obtained by any JPEGprocess. The test function is defined in Proposition 1. Concep-
+tual illustration of “Miss,” “False alarm,” and other scenarios
+are shown in Fig. 3(a)–(g).
+represents the original image.
+is the set of images obtained by JPEG compression of .
+isaugmented with rounding errors in JPEG compression.
+is the set of images passing authentication. is the set of
+images passing authentication allowing tolerance bounds. (a),(b), and (d) are correct authentication. (c) is a miss. (d) is afalsealarmby
+butcorrectauthenticatedby .(e)isacorrect
+authentication by but missed by . (f) is a false alarm. (g)
+is a successful detection of manipulation.
+The probabilities of miss ( ) andfalse alarm ( ) are esti-
+mated by the signature generator and are useful to users of the
+authenticator. An additional evaluation metric, the probability
+of success ( ) can also be used from the attacker’s viewpoint.
+Theattacker maytry tomanipulatetheimagebasedonhisbestknowledgeoftheauthenticationtechnique.Detaileddiscussion
+using these metrics will be shown in this section.
+Several variables are needed to estimate these probabilities.
+Wecanclassifyvariablestothreetypes: pre-determinedvalues,
+selectable variables , andstochastic variables . The signature
+Fig.3. Conceptualillustration of “miss,” “false alarm,” and other scenarios.
+generator estimates a list of and based on different
+quantization tables and tolerances. Based on the quantization
+table used in the compressed image, the user may choose
+tolerances to satisfy constraints on and. Various
+properties of system variable from viewpoints of differentparties are shown in Table III.
+A. Noise from the Compression Process and the Probability
+of False Alarm
+RoundingnoisemaybeaddedduringtheJPEGcompression
+process and may cause false alarm. In practice, computer soft-
+wareandhardwarecalculatetheDCTwithfiniteprecision.Forsomecases,notonlytheinputandtheoutputofDCToperationsareintegers,butalsosomeoftheintermediatevalues.Thiswill
+addroundingnoise totheDCTvalues.Inaddition,some appli-
+cations may drop small values in the high frequency positions.Combining these considerations, we can modify (2) to
+(14)
+where is the noise of DCT operation and is the noise
+ofintegerrounding. Botharerandom variables. usuallyde-
+pends on specific implementations and the number of recom-
+pression processes. Also, in most systems, the rounding rulesare consistent overdifferent positions and thus the effect of
+can be ignored in computing DCT coefficient differences.
+Theprobabilityoffalsealarmofablockpair( )represents
+the probability that at least one DCT difference value in theblock pair triggers the detector in Proposition 1, because of theeffect of rounding noise. We can write
+as
+(15)LIN AND CHANG: ROBUST IMAGE AUTHENTICATIONMETHOD DISTINGUISHING JPEG COMPRESSION FROM MALICIOUS MANIPULATION 161
+where is the probability that a DCT difference value
+triggers the false alarm. That is
+given
+given(16)
+Because of symmetry, these two probabilities are the same.
+To calculate , we first define a discrete random variable
+, s.t.,
+where
+andrepresents the “floor” function.
+isthenoise effectinthe quantizedcoefficient,andcan be
+derived from the continuous noise . Its probability density
+function (pdf) is
+(17)
+The pdf of can be obtained in a similar way. After some
+transformations from (16)
+(18)
+where and . Then, we can obtain
+by using the pdf in (17).
+Applying (15), the user of image authenticator can set suit-
+able tolerance value depending on the quantization table re-
+constructedfromthebitstream,theestimatedvariancesofnoise,and the thresholds. In practical applications, the user has to as-sume models for the pdf of
+a priori; for instance, Gaussian
+distribution.Ifthemodelof isnotavailable,apracticalrule
+is to set tozeroor. The former is suitable for authenti-
+catingone-timecompressedimageswhilethelatterisbetterforimages that may be recompressed several times.
+B. Manipulation and the Probability of Miss
+The probability of miss represents the reliability of the au-
+thenticator. To obtain the probability of miss of a manipulatedblockpair,wemayassumetheblock
+oftheimageismanipu-
+latedanditscorrespondingblock isuntouched.Fromtheview-
+point of the signature generator, any manipulation on the block
+of image can be modeled as an additive random variable ma-
+trix,s.t.
+(19)where andare computation noises described above. In
+general, ismuchlargerthan and.Therefore,thedif-
+ference value of the DCT block pair is
+(20)
+From Section III-B, we know that the range of
+is bounded by the thresholds used in different sets of the au-
+thentication signature. Assume, in the position , the range of
+DCT coefficients is divided into ranges by the thresholds of
+the authentication signature. The upper bound and the lower
+bound of a range are and. For instance, if there is only
+onethreshold, ,then inthefirstrange
+and inthesecondrange.Assumeacoef-
+ficient is in this range
+(21)
+After JPEG compression, the range of should be
+bounded by within a tolerance level, . Therefore,
+the probabilitythat the authenticator fails to detect a manipula-tion on position
+of the block pair is
+given
+(22)
+If we consider as a random variable and apply (20), (22)
+becomes
+(23)
+where
+(24)
+Assume a vector , which is a subset of
+representing the selected elements of ,
+has a pdf . Also, assume a range set ,
+,, to specify the
+accepted range of manipulation. Then, the probability of miss
+of a specific image block pair is
+(25)
+To derive , we need to know the pdf of manipulation,
+i.e., . We first consider manipulations in the spatial
+domain. Since the possible manipulation to an image block is
+arbitrary, from the signature generator’s viewpoint, there is no
+exact distribution function. However, we can assume that themanipulated image block will be similar to its adjacent blocks,otherwisethismanipulatedimageblockwillcauseanoticeable162 IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS OF VIDEO TECHNOLOGY, VOL. 11, NO. 2, FEBRUARY 2001
+artificial effect, which is easily detectable by people. Thus,
+we may use a multivariate zero-mean Gaussian distribution
+to model the probability of additive inten-
+sity change of each pixel in the block. The variance parameter
+depends on what kind of manipulation is expected. Some
+experimentalvaluesareshowninTableIV. isthecovariance
+matrix of the pixels in a block. In the DCT domain, we can get
+the probability distribution of as follows:
+(26)
+where is the DCT transform matrix defined in (1).
+To evaluate an authentication system, we can calculate the
+probability of miss based on the two extreme cases of ,
+uncorrelated and fully correlated. In the uncorrelated case, i.e.,
+, manipulations on each pixels are totally uncorrelated.
+They are similar to additive white Gaussian noise. Therefore,
+because in DCT. In this case, the
+probability of miss will be
+(27)
+where is thestandard normal distribution function ,
+. In the fully correlated
+case, assume there is no weighting on specific positions inthe pixel domain. The intensity change of each pixel is thesame, i.e.,
+where . Then,
+where with
+and ,elsewhere . In this case, will be
+(28)
+Given a specific image block pair with the quantization table,
+the tolerance values, and the thresholds, we can use (27), (28),and Table IV to estimate the range of probability of miss in animage block pair.
+The above computation estimates the probability of miss for
+asingleblockpair.Insomeapplications,theauthenticatordoesnot need to localize the manipulation. In these cases, the missprobabilityforthewholeimageistheproductofthemissprob-
+abilities of all manipulated block pairs.
+C. The Probability of Attack Success
+From the attackers’ point of view, they want to know the
+chanceofsuccessinattackingtheauthenticationsystem.There
+are two kinds of attack. First, attackers may manipulate the
+imagetogenerateanewimagewithdifferentvisualmeaning.Inthiscase,theattackermayusereplacement,deletion,orcloning
+to change the pixel values. This kind of manipulation strategy
+attempts to blend the replaced pixels smoothly with adjacentareas. Second, attackers may manipulate the image (or synthe-size an image) based on their knowledge about the authenti-
+cation algorithm and secret information in the signature. Thisstrategyistogenerateadifferentimagetofooltheauthenticator.
+Note the image content may be clearly altered or distorted. Inparticular, if the attack is done in the DCT domain, noticeable
+distortion usually can be found in the pixel domain. In the fol-
+lowing, we analyze the probabilities of success for these twotypes of attacks.
+1) Attacks with Visual Meaning Changes: Changing visual
+meaningofanimageisacommonattack.Basedonthechangesand estimation of authentication parameters, an attacker canestimatehischanceofsuccess.Forinstance,DCTvaluesofthe
+changed blocks are known to the attacker. If the image will not
+be further recompressed, the quantization table is also known.Otherwise, he can estimate the range of success probabilitybasedondifferentquantizationtables.ThethresholdvaluescanbeestimatedbylookingattheDCTvaluesandthesignature.Ifthis is not available, the first threshold value can be assumedto be zero. The tolerance values used in the authenticator areunknown. But he can assume some reasonable values such
+as zero or
+, and observe their effects on authentication.
+The only random part for estimating the probability of successwould be the values of the DCT coefficients in another blockof the pair.
+Therefore, the probability of success
+of a manipulated
+block can be modeled as
+(29)
+where istheprobabilityofsuccessforeachDCTcoefficient.
+We can compute as follows:
+(30)
+where
+(31)
+Toestimate ,theattackercanassume tobearandom
+variable with a Gaussian distribution with a zero mean and avariance of
+. Therefore, can beLIN AND CHANG: ROBUST IMAGE AUTHENTICATIONMETHOD DISTINGUISHING JPEG COMPRESSION FROM MALICIOUS MANIPULATION 163
+written as . Other probabilities can be ap-
+proximated in a similar way. We can obtain the success proba-bility of each coefficient,
+,a s
+elsewhere
+(32)
+It should be noticed that the attacker has to calculate the DCT
+values of the manipulated blocks and estimate before ap-
+plying (29)–(32).
+From(32),wecanobservethat ,if
+, in
+allranges,thentheprobabilityofsuccess willbeequalto1.
+Usingtransformationssimilartothosein(23),wecanrepresentthis range in the DCT domain
+(33)
+Equation (33) specifies the range in which an attacker can
+change the coefficients without triggering the authenticationalarm. Note the size of this undetected manipulation range isequal to
+.
+We can rewrite the above range as
+(34)
+whereis a coefficient dependent variable within the range of
+. Given that and are un-
+known, the attacker cannot determine a fixed bound for unde-
+tected manipulations. Therefore, anattacker has no way to ma-liciously manipulate an image without taking the risk of trig-gering the authentication alarm.2) Attacks with Knowledge of Authentication Rules: Some
+attackers may try to manipulate an image based on theirknowledge about the authentication techniques, but regardless
+ofthevisualmeaningofthemanipulatedimage.Attackersmay
+want to manipulate or even synthesize an image that can foolthe system without triggering the alarm. In our authenticationsystem, the security mechanism is based on: 1) the private keyused for the signature encryption, which ensures the signaturecannot be forged; 2) the secret transformation mechanism anda seed to generate the mapping function for selecting the blockpairs; and 3) the secret method and another seed used to select
+DCT coefficientpositions in block pairs for comparison. In the
+following paragraphs, we will discuss four possible situations,with differentextent of knowledgepossessed by theattacker.
+SecurityLevelI:AllInformationintheSignatureisSecret: If
+all information in the signature is kept secret from the attacker,the performance of the proposed authenticator is the highest,as analyzed in previous sections. The only possible attack is tomakeaconstantchangetoDCTcoefficientsatthesamelocation
+inall blocks.Wehaveproposedawayto solvethisproblem by
+recording the mean values of DCT coefficients as discussed inSection III-B-1 and Section III-C.
+SecurityLevelII:TheSelectedDCTCoefficientPositionsare
+Known: ThelocationsoftheselectedblockpairsandtheDCT
+coefficients are determined by some secret algorithms, whichare in turn driven by random seed numbers. The secret algo-rithms are usually pre-designed by the manufacturer of the au-
+thenticationsystem.Theycanbestoredassecretbytecodesem-
+beddedinthesystem.Therefore,eventhoughtherandomseedscanbeknownbytheattacker,therealselectedpositionsarestillunknown to the attacker.
+In a pessimistic scenario, the attacker knows the secret
+algorithms and seeds for the selected DCT coefficients. Oncethe knows the real selected positions, he can arbitrarily changethe coefficients that are not compared in the authentication
+process without triggering the authentication alarm. To avoid
+this problem, the authenticator can change the rule of selectedpositions, block by block, in a more complicated method.Furthermore, if this threat persists, the signature generator caneventuallyuse all the 64 DCT coefficientsin each block.
+Security Level III: The Mapping Function of Block Pairs is
+Known: Once the mapping function is known, the attacker
+also knows the DCT differences for each pair of blocks. For
+example, if only the sign of the DCT differences are used
+for authentication, and the attacker knows
+in the original compressed image, he can manipulate thisvalue to
+, which will not be detected by the
+authenticator. In this case, multiple threshold sets should be
+used because they can protect each coefficient with a higheraccuracy. Although the DCT differences are known to theattacker, he still cannot manipulate those DCT coefficients too
+much, because the allowed degree of manipulation is reduced
+as more bits i.e., smaller
+values) are used.
+Security Level IV: The Private Key used for Signature En-
+cryptionisKnown: Theuseoftheprivatekeyensuresthatonly164 IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS OF VIDEO TECHNOLOGY, VOL. 11, NO. 2, FEBRUARY 2001
+(a) (b) (c)
+(d) (e) (f)
+Fig. 4. (a) Original image. (b) JPEG compressed image (compression ratio 9:1). (c) Middle of hat brim cloned. (d) Authentication result of (c). (e) Mou th
+manipulated. (f) Authentication result of (e).
+therightsourcecangeneratetheauthenticationsignature.Inthe
+extreme hypothetical case, the private key used by the original
+source maybeknowntotheattacker.Thisisageneralproblemfor any secure communication and is out of the scope of thispaper. However, one possible way to solve this problem is toask the original source to register and store its signature in atrustable institution. The institution stamps a digital postmarkon the signature to prove its receiving time and its originality.Therefore, the forged signature will be considered invalid be-
+cause its originality cannot be proven.
+Itisalsoworthnotingthatsubjectiveinspectionmayprovide
+anothermeansofprotectingtheimageauthenticity.TheattackermaytrytodevelopspecialmanipulationsintheDCTdomaininorder to breakthe proposedscheme. But, atthe sametime, it isdifficult for the attacker to control the resulting artifacts in thepixel domain. These artifacts may be very obvious to humans,even as theyareableto circumventthe authenticationprocess.
+V. E
+XPERIMENTAL RESULTS
+A. Experiments
+In evaluating the proposed image authenticator, we test dif-
+ferent manipulations on the well-known “Lenna” image. The
+original imageis shown in Fig. 4(a). In our experiment, theau-
+thentication results together with the DCT coefficients are
+senttoanIDCTtoconvertthosecoefficientstothepixeldomain.Thoseblocksdetectedasmanipulatedwillbehighlighted,withthe highlight intensity proportional to the number of manipu-
+latedcoefficientsinthatblock.Therefore,themorecoefficientsmodified, the brighter this block will be. There are 10 bits perblock pair used in generating the signature codes.
+Experiment 1: Lossy Compression: The “Lenna” image is
+compressedwithcompressionaratioof9:1.Theauthenticationsignatureisgeneratedbasedontheoriginal“Lenna”image.Thecompressed bitstream is sent to the system for authentication.
+The tolerance bound of the authenticator is set to
+, since
+no integral rounding is involved. As previously predicted, theauthenticatorwillverifythecompressedimageasauthenticanddecompress this image perfectly. The authentication result is
+shown in Fig. 4(b).
+Experiment 2: Recompression and Integer Rounding: The
+original image is compressed with a compression ratio 6:1.Then,thisimageisdecompressedbyPhotoshop,roundedtoin-
+tegralvalues,andrecompressedintoanimagewithcompression
+ratioof9:1.Inthiscase,ifweuse
+,therecompression
+process(9:1)willnottriggerthemanipulationdetectorandthefinal compressed image is still verified as authentic. The final
+decoded image is similar to Fig. 4(b).
+Experiment3:DetectionofManipulation: Thethirdexperi-
+mentismadebymanipulatingtheimagebydeletingthefeatherfringe hanging over the hat brim, just above Lenna’s right eye.
+This featherarea (
+pixels)is removedand clonedby its
+neighboring pixels. This image is shown in Fig. 4(c). The au-thenticationresultisshowninFig.4(d).Itisclearlyshownthatthemanipulatedparthasbeendetectedasfake;itishighlightedLIN AND CHANG: ROBUST IMAGE AUTHENTICATIONMETHOD DISTINGUISHING JPEG COMPRESSION FROM MALICIOUS MANIPULATION 165
+(a)
+(b)
+Fig. 5. Probability of: (a) miss with different images and (b) miss with different signature lengths.
+bytheauthenticator.TheotherexampleisshowninFig.4(e).In
+thisimage,Lenna’smouthwasflippedintheverticaldirection.Its authentication result is shown in Fig. 4(f).
+B. Probability of Miss and Attack Success
+From Figs. 5 and 6, we evaluate practical system perfor-
+mance by analyzing the probability of miss and the probabilityofsuccessindifferentcases.Fig.5(a)showsthemedianvaluesoftheprobabilityofmissinseveralimages.Thetolerancevalue
+, thethresholdvalues , andthestandarddevi-
+ationofmanipulations(35)areusedinthisfigure.(Ifnotspeci-
+fied,thesesettingsarekeptthesameforotherfigures.)Inthesefigures, a
+symbol means bits are used in the first
+set of the feature codes, and are used in the second set. For
+instance, 10 bits used per block pair are denoted by a (10,0)symbol.166 IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS OF VIDEO TECHNOLOGY, VOL. 11, NO. 2, FEBRUARY 2001
+(a)
+(b)
+Fig. 6. (a) Probability of miss of images with different JPEG quality factors. (b) Probability of duccess with different manipulation values.
+TABLE IV
+STANDARD DEVIATION OF DIFFERENT OPERATIONS (RESULTS OF EXPERIMENTS
+USINGPHOTOSHOP 3.0TOMANIPULATE IMAGE IN THE PIXELDOMAIN)
+Fig. 5(b) shows the probability of miss with different
+standard deviations of manipulations. These values are derivedfrom (27) and (28). Referring to Table IV, the standard devia-
+tion of a replacement manipulation is between 25.8 and 55.0.Through our experiments of ten images, the medain value ofthis change is between 35 and 40. If we use 40 as the possiblestandard deviation of malicious manipulation, the estimatedvalue of
+will be 0.04 for a (10,0) signature or 0.0004 for
+a (20,0) signature. The JPEG quality factor is 75, in this case.
+Although the same authentication system is valid regardless
+of the image compression rate, the probability of miss is vari-LIN AND CHANG: ROBUST IMAGE AUTHENTICATIONMETHOD DISTINGUISHING JPEG COMPRESSION FROM MALICIOUS MANIPULATION 167
+able because the allowable modification range is increased as
+the quality factor decreases. This is shown in Fig. 6(a). We use(27) and (28) to compute these values. The standard deviation
+ofmanipulationissetto35.Wecanseethat
+increaseswhen
+the image is compressed more.
+Because the probability of success is case dependent, it can
+only be estimated when the attacker’s actual manipulations aregiven. It is impractical to compute a single universal
+for
+an image. However, as an example, we change all DCT coeffi-cients in a block with a constant and compute the
+. Then we
+vary to location of the changed block in the image. For each
+block, we obtain a . Finally, the median value of all proba-
+bilitiesversusthechangemagnitudesisshowninFig.6(b).Forinstance, if we use the (15,0) signature and increase each DCTcoefficient in a block by 20, then the probability of sucess isabout 0.03. In other words, assuming the attacker knows someauthentication parameters
+but does not know which
+blocks are formed as pairs, his manipulation attack has a 0.03probability of success.
+Observing these figures, we know that the more bits used,
+the less the probability of miss will be. Also, we know that ifthe same number of bits was used, the performance of authen-tication signatures with two threshold sets will be better thanthose with only one set.
+VI. C
+ONCLUSION
+Inthispaper,wehaveproposedanimageauthenticationtech-
+nique that distinguishes the JPEG lossy baseline compression
+from other malicious manipulations. In practical applications,images may be compressed and decompressed several timesand still considered as authentic. Some manipulations, e.g., in-
+tegralvaluerounding,colorspacetransformationandcropping,
+are also considered acceptable in some applications. We pro-pose a technique that allows JPEG lossy compression but pre-vents malicious manipulations. Our proposed technique can be
+customized to accommodate different requirements and accept
+“desirable” manipulations. Our extensive analytic and empir-ical performance analysis has shown the effectiveness of thissystem.
+A
+PPENDIX I
+PROOF OFTHEOREM1ANDTHEOREM2
+Proof 1: , assume ,
+, and , where are the rounding
+integersof ,respectively,and
+. Assume , then
+(35)
+Therefore
+(36)
+Ifis an integer, i.e., , then
+(37)Since are integers
+(38)
+If , then . Since
+(39)
+Theorem 1 can be proved by substituting by
+,by ,by
+,by ,by 0, and
+witheveryparametermultipliedby .InTheorem2,(5)
+can be proved by the same parameter substitutions except is
+replaced by andis replaced by . Equations
+(6)and(7)can be provedby usingsimilar methods.
+In some software implementations, the integer rounding
+process is replaced by the truncation process. In this case,
+Theorem 1 and 2 are still valid. They can be proved by Proof 2
+with the same parameter substitutions as in Proof 1.
+Proof 2: , assume ,
+, and , where are the truncated
+integers of a,b,c, respectively, and .
+Similarly,inthecasethat ,i.e.,
+,ifisaninteger,then
+. Therefore
+(40)
+If ,then .Since
+(41)
+and therefore
+(42)
+whichsatisfies .
+APPENDIX II
+VARIABLEQUANTIZATION TABLES
+Insomeimage/videocompressiontechniques,differentquan-
+tization tables are used in different image blocks for adaptive
+compression ratecontrol, such as in MPEG or laterJPEG stan-dards. In these cases, the proposed image authentication tech-niques can be extended by the following theorem.
+Theorem3: UsetheparametersdefinedinTheorem1,except
+is defined as
+and ,
+where andarequantizationtablesforblocks and
+respectively. Assume a fixed threshold . The following
+properties hold:
+1) if ,then
+;
+2) else if , then
+. .168 IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS OF VIDEO TECHNOLOGY, VOL. 11, NO. 2, FEBRUARY 2001
+We redefine (11) as
+if ,
+i.e.,
+if ,
+i.e., .
+In other words, if , then
+must be satisfied.
+Exceptfortheabovemodifications,theauthenticationsystem
+designed for the variable quantization table cases would be the
+same as the proposed system for the case with equal quantiza-tion tables. A detailed discussion of this case is in [14].
+R
+EFERENCES
+[1] S. Bhattacharjee and M. Kutter, “Compression tolerant image authenti-
+cation,” in Proc. IEEE Int. Conf. Image Processing , Chicago, IL, Oct.
+1998.
+[2] G.W.Braudaway,K.A.Magerlein,andF.Mintzer,“Protectingpublicly-
+availableimageswithavisibleimagewatermark,”IBMT.J.WatsonRe-
+searchCenter, Yorktown Heights,NY,Res. Rep. RC20336, Jan.1996.
+[3] I. J. Cox, J. Kilian, T. Leighton, and T. Shamoon, “Secure spread spec-
+trumwatermarkingformultimedia,”NECResearchInstitute,Princeton,
+NJ, Tech. Rep. 95-10, 1995.
+[4] S. Craver, N. Memon, B. L. Yeo, and M. Yeung, “Can invisible water-
+marks resolve rightful ownerships,” IBM T.J. Watson Research Center,
+Yorktown Heights, NY, Res. Rep. RC 20509, July 1996.
+[5] W. Diffle and M. E. Hellman, “New directions in cryptography,” IEEE
+Trans. Inform. Theory , vol. IT-22, pp. 644–654, Nov. 1976.
+[6] J. Fridrich, “Image watermarking for tamper detection,” in Proc. IEEE
+Int. Conf. Image Processing , Chicago, IL, Oct. 1998.
+[7] ,“Methodsfordetectingchangesindigitalimages,”in Proc.IEEE
+WorkshoponIntelligentSignalProcessingandCommunicationSystems ,
+Melbourne, Australia, Nov. 1998.
+[8] G. L. Friedman, “The trustworthy digital camera: Restoring credibility
+to the photographic image,” IEEE Trans. Consumer Electron. , vol. 39,
+pp. 905–910, Nov. 1993.
+[9] IETF Networking Group. (1999, Mar.) Internet X.509 public key
+infrastructure certificate management protocols . Internet Engineering
+Task Force (IETF), RFC 2510. [Online]. Available: http://www.ietf.org/html.charters/pkix-charter.html
+[10] (1998, August) Public key infrastructure: The PKIX reference imple-
+mentation project . IBM Secureway White Paper. [Online]. Available:
+http://www.ibm.com/security/html/wp-pkix.pdf
+[11] A. K. Jain, Fundamentals of Digital Image Processing . Englewood
+Cliffs, NJ: Prentice-Hall, 1989, pp. 80–99.
+[12] C. Kaufman, R. Perlman, and M. Speciner, Network Security: Private
+Communication in a Public World . Englewood Cliffs, NJ: Prentice-
+Hall, 1995, pp. 129–162.
+[13] C.-Y. Lin and S.-F. Chang, “A robust image authentication method
+surviving JPEG lossy compression,” SPIE Storage and Retrieval of
+Image/Video Databases , Jan. 1998.
+[14]
+,“AnimageauthenticatorsurvivingDCT-basedvariablequantiza-
+tion table compressions,” CU/CTR, New York, Tech. Rep. 490-98-24,
+Nov. 1997.
+[15] , “A watermark-based robust image authentication method using
+wavelets,” Columbia Univ., New York, ADVENT Project Rep., Apr.
+1998.
+[16] , “Issues and solutions for authenticating MPEG video,” in SPIE
+Conf. Security and Watermarking of Multimedia Contents , vol. 3657,
+San Jose, CA, Jan. 1999, pp. 54–65.
+[17] C.-Y. Lin. Bibliography of multimedia authentication
+research papers. [Online]. Available: http://www.ctr.co-lumbia.edu/~cylin/auth/bibauth.html
+[18] B. M. Macq and J. J. Quisquater, “Cryptology for digital TV broad-
+casting,” Proc. IEEE , vol. 83, pp. 944–957, June 1995.[19] K.MatsuiandK.Tanaka,“Video-steganography:Howtosecretlyembed
+asignatureinapicture,”in Proc.IMAIntellectualPropertyProject ,vol.
+1, 1994, pp. 187–206.
+[20] M. P. Queluz, “Content-based integrity protection of digital images,”
+inSPIE Conf. Security and Watermarking of Multimedia Contents , vol.
+3657, San Jose, CA, Jan. 1999, pp. 85–93.
+[21] L. L. Scharf, Statistical Signal Processing—Detection, Estimation,
+and Time Series Analysis . Reading, MA: Addison-Wesley, 1991, pp.
+103–178.
+[22] M.SchneiderandS.-F.Chang,“Arobustcontentbaseddigitalsignature
+for image authentication,” in Proc. IEEE Int. Conf. Image Processing ,
+Laussane, Switzerland, Oct. 1996.
+[23] B. Schneier, Applied Cryptography . New York: Wiley, 1996, pp.
+461–502.
+[24] S. D. Silvey, Statistical Inference . London, U.K.: Chapman & Hall,
+1975, pp. 94–107.
+[25] G.K.Wallace,“TheJPEGstillpicturecompressionstandard,” Commun.
+ACM, vol. 34, pp. 30–44, Apr. 1991.
+[26] S.Walton,“Imageauthenticationforaslipperynewage,” Dr.Dobb’sJ. ,
+pp. 18–26, April 1995.
+[27] M. Yeung and F. Mintzer, “An invisible watermarking technique for
+image verification,” in Proc. IEEE Int. Conf. Image Processing , Santa
+Barbara, Oct.r 1997.
+[28] J. Zhao and E. Koch, “Embedding robust label into images for copy-
+rightprotection,”in Proc.Int. Congresson IntellectualPropertyRights
+forSpecializedInformation,KnowledgeandNewTechnologies ,Vienna,
+Austria, Aug. 1995.
+Ching-Yung Lin (S’98–M’01) received the B.S.
+and M.S. degrees from National Taiwan University,
+Taiwan, R.O.C., in 1991 and 1993, respectively, andthe Ph.D. degree from Columbia University, New
+York, in 2000, all in electrical engineering.
+During 1993–1995, he was a Wireless Commu-
+nication Engineer in the Taiwan Air Force. In 2000,
+he joined the IBM T. J. Watson Research Center,
+Yorktown Heights,NY,asaResearchStaffMember.
+His current research interests include multimediaauthentication and watermarking techniques for
+security, multimedia indexing and query, multimedia transmission and net-
+working, human–computer interaction, and multirate multidimensional signal
+processing. He was the primary contributor in the design of the first successful
+self-authentication-and-recovery multimedia system, which distinguishes
+JPEG/MPEG compression from malicious manipulation, and in the design of
+the first public/blind watermarking method surviving print-and-scan process.
+He holds three pending U.S. patents.
+Dr. Lin was the recipient of Lung-Teng Thesis Award and an Outstanding
+Paper Award, both in 1993.
+Shih-FuChang (S’89–M’93)receivedthePh.D.de-
+greeinElectricalEngineeringandComputerSciencefromtheUniversityofCaliforniaatBerkeleyin1993.
+He is an Associate Professor of Electrical
+Engineering at Columbia University, and currently
+leads Columbia’s ADVENT Industry–University
+Research Consortium, which focuses on represen-
+tation, manipulation, searching, and transmission
+of multimedia content. He also leads digital video
+research within several cross-disciplinary projects
+at Columbia, including Columbia’s Health CareDigital Library Project supported by the National
+Science Foundation’s DLI Phase-II initiative. He actively participates in
+international conferences and standardization efforts, such as MPEG-7, and
+has been Consultant for several new media companies.
+Prof. Chang was a General Co-Chair of ACM Multimedia Conference 2000
+andanAssociateEditorforseveraljournals(AU:PLS.NAME).Hewasawarded
+a Faculty Development Awardfrom IBM in 1995, a CAREER Award from theNational Science Foundation in 1995, a Navy ONR Young Investigator Award
+in 1998, and three Best Paper Awards in the areas of video representation and
+searching.

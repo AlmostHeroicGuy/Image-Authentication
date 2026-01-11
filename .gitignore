@@ -1,0 +1,8 @@
+# Ignore huge data files (Prevents upload crash)
+*.pt
+*.pth
+*.npy
+Dataset/
+ANTI/
+__pycache__/
+.ipynb_checkpoints/
