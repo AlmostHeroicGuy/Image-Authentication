@@ -31,7 +31,7 @@ def generate_data():
     X = torch.zeros(SAMPLES, N)
     for i in range(SAMPLES):
         indices = torch.randperm(N)[:K]
-        values = torch.randn(K)
+        values = torch.rand(K) * 8 + 2    # Changed from randn(gaussian) to rand(uniform(0,1) ) to effectively get the values only between 2 and 10
         X[i, indices] = values
         
     # Generate Measurements Y = X @ A.T
