@@ -205,7 +205,7 @@ worst_idx = np.argmax(nmse_values)
 best_idx = np.argmin(nmse_values)
 print(f"Worst Sample Index: {worst_idx} with NMSE {nmse_values[worst_idx]:.2f} dB")
 print(f"Best Sample Index: {best_idx} with NMSE {nmse_values[best_idx]:.2f} dB")
-sample_idx = 55
+sample_idx = 99
 # 90 is -18dB and 0 is -23.5dB, 99 and 98 are very good
 x_true_np = X_true[sample_idx].detach().cpu().numpy()
 x_est_np = x[sample_idx].detach().cpu().numpy()
