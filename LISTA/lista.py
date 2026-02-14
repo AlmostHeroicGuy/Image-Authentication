@@ -31,7 +31,7 @@ EPOCHS = 250
 LEARNING_RATE = 1e-3
 
 # LISTA Config
-NUM_LAYERS = 16
+NUM_LAYERS = 10
 TOLERANCE_G = 0.1  
 
 # ==========================================
