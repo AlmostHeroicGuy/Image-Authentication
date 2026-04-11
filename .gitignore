@@ -6,3 +6,8 @@ Dataset/
 ANTI/
 __pycache__/
 .ipynb_checkpoints/
+SimCLR/test/
+
+
+# Ignore Prajna SLURM and local bash scripts
+*.sh
