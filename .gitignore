@@ -17,6 +17,5 @@ SimCLR/kajal.jpg
 SimCLR/part1/
 SimCLR/UTK_Face/
 
-
-# Ignore Prajna SLURM and local bash scripts
+# Ig
 *.sh
