@@ -6,3 +6,17 @@ Dataset/
 ANTI/
 __pycache__/
 .ipynb_checkpoints/
+SimCLR/test/
+SimCLR/Faces/
+SimCLR/part2/
+SimCLR/part3/
+SimCLR/samantha.webp
+SimCLR/rookmini.jpg
+SimCLR/kayadu.jpg
+SimCLR/kajal.jpg
+SimCLR/part1/
+SimCLR/UTK_Face/
+
+
+# Ignore Prajna SLURM and local bash scripts
+*.sh
