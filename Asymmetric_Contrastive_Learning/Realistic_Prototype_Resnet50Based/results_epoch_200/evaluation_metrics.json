@@ -1,0 +1,18 @@
+{
+  "selected_threshold": 0.8780000000000001,
+  "validation_accuracy": 0.99175,
+  "roc_auc": 0.99645312,
+  "equal_error_rate": 0.01639999999999997,
+  "eer_threshold": 0.07685616612434397,
+  "threshold": 0.8780000000000001,
+  "accuracy": 0.9843,
+  "precision": 0.9932776532898757,
+  "recall": 0.9752,
+  "f1_score": 0.9841558179432839,
+  "false_positive_rate": 0.0066,
+  "false_negative_rate": 0.0248,
+  "true_positive": 4876,
+  "true_negative": 4967,
+  "false_positive": 33,
+  "false_negative": 124
+}

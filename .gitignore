@@ -6,16 +6,22 @@ Dataset/
 ANTI/
 __pycache__/
 .ipynb_checkpoints/
-SimCLR/test/
-SimCLR/Faces/
-SimCLR/part2/
-SimCLR/part3/
-SimCLR/samantha.webp
-SimCLR/rookmini.jpg
-SimCLR/kayadu.jpg
-SimCLR/kajal.jpg
-SimCLR/part1/
-SimCLR/UTK_Face/
+Contrastive_Learning/SimCLR/test/
+Contrastive_Learning/SimCLR/Faces/
+Contrastive_Learning/SimCLR/part2/
+Contrastive_Learning/SimCLR/part3/
+Contrastive_Learning/SimCLR/samantha.webp
+Contrastive_Learning/SimCLR/rookmini.jpg
+Contrastive_Learning/SimCLR/kayadu.jpg
+Contrastive_Learning/SimCLR/kajal.jpg
+Contrastive_Learning/SimCLR/part1/
+Contrastive_Learning/SimCLR/UTK_Face/
+Face_Swap_Dataset_FlickrDeepfake/
 
-# Ig
-*.sh
+Asymmetric_Contrastive_Learning/Convolutional_Transformer/__pycache__/
+Asymmetric_Contrastive_Learning/Realistic_Prototype_ResNet50Based/__pycache__/
+Asymmetric_Contrastive_Learning/Small_Prototype (ResNet10 based)/__pycache__/
+Asymmetric_Contrastive_Learning/Small_Prototype (ResNet10 based)/TinyImageNet/
+
+
+*.tmp.driveupload

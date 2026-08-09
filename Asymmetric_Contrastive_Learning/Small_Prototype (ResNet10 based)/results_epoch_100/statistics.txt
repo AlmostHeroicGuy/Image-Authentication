@@ -1,0 +1,145 @@
+Checkpoint: hybrid_encoder_epoch_100.pth
+Checkpoint Epoch: 100
+Device: cuda
+Full quantitative samples: 5000
+Full matrices are computed from eval_set/ (pre-generated, reproducible).
+Visualization matrices use only visualization_set's 200 aligned samples.
+
+======================================================================
+REAL vs POSITIVE (FULL)
+======================================================================
+
+MATCHED PAIRS (DIAGONAL)
+----------------------------------------
+Mean : 0.951617
+Std  : 0.066671
+Max  : 0.999973
+Min  : -0.137218
+
+RANDOM DIAGONAL EXAMPLES
+(0305,0305) -> 0.932922
+(0785,0785) -> 0.984772
+(1367,1367) -> 0.968220
+(0546,0546) -> 0.975121
+(4957,4957) -> 0.976131
+
+UNMATCHED PAIRS (OFF-DIAGONAL)
+----------------------------------------
+Mean : 0.003760
+Std  : 0.129310
+Max  : 0.994801
+Min  : -0.654788
+
+RANDOM OFF-DIAGONAL EXAMPLES
+(2823,2687) -> 0.121020
+(4499,3395) -> -0.083768
+(3807,3509) -> 0.274577
+(4645,3585) -> 0.149405
+(4255,2631) -> 0.060187
+
+Gap (diag - offdiag): 0.947857
+
+======================================================================
+REAL vs NEGATIVE (FULL)
+======================================================================
+
+MATCHED PAIRS (DIAGONAL)
+----------------------------------------
+Mean : 0.211598
+Std  : 0.280110
+Max  : 1.000000
+Min  : -0.425482
+
+RANDOM DIAGONAL EXAMPLES
+(4587,4587) -> 0.214236
+(4490,4490) -> -0.117597
+(3606,3606) -> 0.283353
+(1162,1162) -> 0.257696
+(3376,3376) -> 0.471920
+
+UNMATCHED PAIRS (OFF-DIAGONAL)
+----------------------------------------
+Mean : -0.054855
+Std  : 0.187910
+Max  : 0.997442
+Min  : -0.661103
+
+RANDOM OFF-DIAGONAL EXAMPLES
+(3212,0527) -> 0.095637
+(3394,2344) -> -0.194789
+(1205,1605) -> -0.037036
+(1166,2540) -> 0.042602
+(1728,4123) -> -0.174963
+
+Gap (diag - offdiag): 0.266453
+
+======================================================================
+POSITIVE vs NEGATIVE (FULL)
+======================================================================
+
+MATCHED PAIRS (DIAGONAL)
+----------------------------------------
+Mean : 0.220691
+Std  : 0.250255
+Max  : 0.999975
+Min  : -0.355016
+
+RANDOM DIAGONAL EXAMPLES
+(1701,1701) -> 0.196478
+(0845,0845) -> 0.069804
+(0814,0814) -> 0.181107
+(3172,3172) -> 0.085604
+(0535,0535) -> 0.102040
+
+UNMATCHED PAIRS (OFF-DIAGONAL)
+----------------------------------------
+Mean : -0.035548
+Std  : 0.143151
+Max  : 0.997584
+Min  : -0.636802
+
+RANDOM OFF-DIAGONAL EXAMPLES
+(2147,4974) -> -0.257081
+(3048,0333) -> -0.153407
+(0515,0768) -> 0.217692
+(1789,0249) -> -0.077261
+(1188,2041) -> 0.125225
+
+Gap (diag - offdiag): 0.256239
+
+======================================================================
+REAL-NEGATIVE HARDEST / EASIEST CASES
+======================================================================
+
+HARDEST 10 RN CASES (highest real-negative similarity)
+3503 -> 1.000000 | eval_set\real\03503.png
+4640 -> 0.999982 | eval_set\real\04640.png
+4928 -> 0.999947 | eval_set\real\04928.png
+4645 -> 0.999850 | eval_set\real\04645.png
+2210 -> 0.999794 | eval_set\real\02210.png
+3086 -> 0.999580 | eval_set\real\03086.png
+2009 -> 0.999403 | eval_set\real\02009.png
+3278 -> 0.999395 | eval_set\real\03278.png
+0418 -> 0.999390 | eval_set\real\00418.png
+1018 -> 0.999383 | eval_set\real\01018.png
+
+EASIEST 10 RN CASES (lowest real-negative similarity)
+0040 -> -0.425482 | eval_set\real\00040.png
+1920 -> -0.412669 | eval_set\real\01920.png
+2113 -> -0.411554 | eval_set\real\02113.png
+4770 -> -0.406987 | eval_set\real\04770.png
+0878 -> -0.399766 | eval_set\real\00878.png
+4824 -> -0.379918 | eval_set\real\04824.png
+3155 -> -0.371975 | eval_set\real\03155.png
+4988 -> -0.363045 | eval_set\real\04988.png
+1492 -> -0.361643 | eval_set\real\01492.png
+3860 -> -0.358319 | eval_set\real\03860.png
+
+======================================================================
+THRESHOLD ANALYSIS
+======================================================================
+Positive scores: diagonal RP similarities
+Negative scores: diagonal RN similarities
+Threshold sweep: 2001 points from -1 to 1
+Best Threshold : 0.815000
+Best Accuracy  : 96.33%

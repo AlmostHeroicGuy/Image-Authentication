@@ -1,0 +1,9 @@
+\beamer@sectionintoc {1}{CNN Backbone}{6}{0}{1}
+\beamer@sectionintoc {2}{Tokenizer}{10}{0}{2}
+\beamer@sectionintoc {3}{Transformer}{12}{0}{3}
+\beamer@sectionintoc {4}{Augmentations}{18}{0}{4}
+\beamer@sectionintoc {5}{Loss}{23}{0}{5}
+\beamer@sectionintoc {6}{Training}{27}{0}{6}
+\beamer@sectionintoc {7}{Evaluation}{33}{0}{7}
+\beamer@sectionintoc {8}{HPC Scripts}{36}{0}{8}
+\beamer@sectionintoc {9}{Code Notes}{39}{0}{9}

@@ -1,0 +1,166 @@
+Checkpoint: C:\Users\tusha\Deep\Asymmetric_Contrastive_Learning\Realistic_Prototype_Resnet50Based\model_checkpoints\hybrid_encoder_epoch_200.pth
+Checkpoint Epoch: 200
+Device: cuda
+Image size: 224x224
+Validation samples: 2000
+Full quantitative samples: 5000
+Full matrices are computed from eval_set/ (pre-generated, reproducible).
+Visualization matrices use only visualization_set's 200 aligned samples.
+
+======================================================================
+REAL vs POSITIVE (FULL)
+======================================================================
+
+MATCHED PAIRS (DIAGONAL)
+----------------------------------------
+Mean : 0.973401
+Std  : 0.140917
+Max  : 0.999982
+Min  : 0.000000
+
+RANDOM DIAGONAL EXAMPLES
+(0305,0305) -> 0.998881
+(0785,0785) -> 0.999792
+(1367,1367) -> 0.999043
+(0546,0546) -> 0.999246
+(4957,4957) -> 0.996362
+
+UNMATCHED PAIRS (OFF-DIAGONAL)
+----------------------------------------
+Mean : 0.007050
+Std  : 0.022973
+Max  : 0.993059
+Min  : 0.000000
+
+RANDOM OFF-DIAGONAL EXAMPLES
+(2823,2687) -> 0.000000
+(4499,3395) -> 0.000000
+(3807,3509) -> 0.000000
+(4645,3585) -> 0.000000
+(4255,2631) -> 0.000000
+
+Gap (diag - offdiag): 0.966351
+
+======================================================================
+REAL vs NEGATIVE (FULL)
+======================================================================
+
+MATCHED PAIRS (DIAGONAL)
+----------------------------------------
+Mean : 0.012888
+Std  : 0.097984
+Max  : 0.998072
+Min  : 0.000000
+
+RANDOM DIAGONAL EXAMPLES
+(4587,4587) -> 0.000020
+(4490,4490) -> 0.000000
+(3606,3606) -> 0.000000
+(1162,1162) -> 0.000007
+(3376,3376) -> 0.001947
+
+UNMATCHED PAIRS (OFF-DIAGONAL)
+----------------------------------------
+Mean : 0.010352
+Std  : 0.083293
+Max  : 0.999849
+Min  : 0.000000
+
+RANDOM OFF-DIAGONAL EXAMPLES
+(3212,0527) -> 0.000000
+(3394,2344) -> 0.000000
+(1205,1605) -> 0.000000
+(1166,2540) -> 0.000000
+(1728,4123) -> 0.000502
+
+Gap (diag - offdiag): 0.002536
+
+======================================================================
+POSITIVE vs NEGATIVE (FULL)
+======================================================================
+
+MATCHED PAIRS (DIAGONAL)
+----------------------------------------
+Mean : 0.001430
+Std  : 0.013734
+Max  : 0.890599
+Min  : 0.000000
+
+RANDOM DIAGONAL EXAMPLES
+(1701,1701) -> 0.002071
+(0845,0845) -> 0.000032
+(0814,0814) -> 0.000000
+(3172,3172) -> 0.000000
+(0535,0535) -> 0.000351
+
+UNMATCHED PAIRS (OFF-DIAGONAL)
+----------------------------------------
+Mean : 0.001274
+Std  : 0.013680
+Max  : 0.983155
+Min  : 0.000000
+
+RANDOM OFF-DIAGONAL EXAMPLES
+(2147,4974) -> 0.000000
+(3048,0333) -> 0.000000
+(0515,0768) -> 0.000000
+(1789,0249) -> 0.000025
+(1188,2041) -> 0.000000
+
+Gap (diag - offdiag): 0.000156
+
+======================================================================
+REAL-NEGATIVE HARDEST / EASIEST CASES
+======================================================================
+
+HARDEST 10 RN CASES (highest real-negative similarity)
+4215 -> 0.998072 | eval_set\real\04215.png
+2058 -> 0.996788 | eval_set\real\02058.png
+3870 -> 0.995191 | eval_set\real\03870.png
+3867 -> 0.994833 | eval_set\real\03867.png
+4104 -> 0.992215 | eval_set\real\04104.png
+2250 -> 0.991438 | eval_set\real\02250.png
+1996 -> 0.989574 | eval_set\real\01996.png
+1715 -> 0.986286 | eval_set\real\01715.png
+4168 -> 0.984923 | eval_set\real\04168.png
+2327 -> 0.983926 | eval_set\real\02327.png
+
+EASIEST 10 RN CASES (lowest real-negative similarity)
+3974 -> 0.000000 | eval_set\real\03974.png
+2762 -> 0.000000 | eval_set\real\02762.png
+2761 -> 0.000000 | eval_set\real\02761.png
+0056 -> 0.000000 | eval_set\real\00056.png
+0055 -> 0.000000 | eval_set\real\00055.png
+0054 -> 0.000000 | eval_set\real\00054.png
+0050 -> 0.000000 | eval_set\real\00050.png
+0047 -> 0.000000 | eval_set\real\00047.png
+0015 -> 0.000000 | eval_set\real\00015.png
+0010 -> 0.000000 | eval_set\real\00010.png
+
+======================================================================
+VALIDATION THRESHOLD SELECTION
+======================================================================
+Threshold selected only on validation_set/.
+Threshold sweep: 2001 points from -1 to 1
+Selected Threshold   : 0.878000
+Validation Accuracy  : 99.17%
+
+======================================================================
+HELD-OUT EVALUATION METRICS
+======================================================================
+Accuracy             : 98.43%
+Precision            : 0.993278
+Recall               : 0.975200
+F1-score             : 0.984156
+False Positive Rate  : 0.006600
+False Negative Rate  : 0.024800
+ROC AUC              : 0.996453
+Equal Error Rate     : 0.016400
+EER Threshold        : 0.076856
+
+CONFUSION MATRIX COUNTS
+----------------------------------------
+True Positive  : 4876
+True Negative  : 4967
+False Positive : 33
+False Negative : 124

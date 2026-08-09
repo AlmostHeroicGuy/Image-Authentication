@@ -1,0 +1,973 @@
+========================================================
+ ResNet10 Watermark Contrastive Training
+========================================================
+JOB ID         : 135150
+NODE           : cn11-dgx
+START TIME     : Monday 15 June 2026 03:15:06 AM IST
+PROJECT DIR    : /home/sm-signal-learning/24b1257/Small_Model
+DATASET        : TinyImageNet/train
+GPUs           : 2
+BATCH/GPU      : 2048
+Effective Batch: 4096
+Workers/GPU    : 8
+Epochs         : 100
+Checkpoint     : latest_resnet10_checkpoint.pth
+========================================================
+Mon Jun 15 03:15:07 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.144.03             Driver Version: 550.144.03     CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-SXM4-80GB          On  |   00000000:07:00.0 Off |                    0 |
+| N/A   26C    P0             63W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   1  NVIDIA A100-SXM4-80GB          On  |   00000000:4E:00.0 Off |                    0 |
+| N/A   27C    P0             62W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+============================================================
+  Modified ResNet10 Based Asymmetric Contrastive Training
+  Mode      : DDP
+  GPUs      : 2
+  Batch/GPU : 2048  ->  effective: 4096
+  Epochs    : 100
+  LR scaled : 2.00e-04
+  Dataset   : TinyImageNet/train
+============================================================
+cn11-dgx:78655:78655 [0] NCCL INFO Bootstrap : Using enp226s0:192.168.1.15<0>
+cn11-dgx:78655:78655 [0] NCCL INFO NET/Plugin: No plugin found (libnccl-net.so)
+cn11-dgx:78655:78655 [0] NCCL INFO NET/Plugin: Plugin load returned 2 : libnccl-net.so: cannot open shared object file: No such file or directory : when loading libnccl-net.so
+cn11-dgx:78655:78655 [0] NCCL INFO NET/Plugin: Using internal network plugin.
+cn11-dgx:78655:78655 [0] NCCL INFO cudaDriverVersion 12040
+cn11-dgx:78656:78656 [1] NCCL INFO cudaDriverVersion 12040
+NCCL version 2.21.5+cuda12.4
+cn11-dgx:78656:78656 [1] NCCL INFO Bootstrap : Using enp226s0:192.168.1.15<0>
+cn11-dgx:78656:78656 [1] NCCL INFO NET/Plugin: No plugin found (libnccl-net.so)
+cn11-dgx:78656:78656 [1] NCCL INFO NET/Plugin: Plugin load returned 2 : libnccl-net.so: cannot open shared object file: No such file or directory : when loading libnccl-net.so
+cn11-dgx:78656:78656 [1] NCCL INFO NET/Plugin: Using internal network plugin.
+cn11-dgx:78656:80794 [1] NCCL INFO NCCL_IB_DISABLE set by environment to 0.
+cn11-dgx:78655:80793 [0] NCCL INFO NCCL_IB_DISABLE set by environment to 0.
+cn11-dgx:78655:80793 [0] NCCL INFO NET/IB : Using [0]mlx5_5:1/IB [1]mlx5_11:1/IB [RO]; OOB enp226s0:192.168.1.15<0>
+cn11-dgx:78655:80793 [0] NCCL INFO Using non-device net plugin version 0
+cn11-dgx:78655:80793 [0] NCCL INFO Using network IB
+cn11-dgx:78655:80793 [0] NCCL INFO DMA-BUF is available on GPU device 0
+cn11-dgx:78656:80794 [1] NCCL INFO NET/IB : Using [0]mlx5_5:1/IB [1]mlx5_11:1/IB [RO]; OOB enp226s0:192.168.1.15<0>
+cn11-dgx:78656:80794 [1] NCCL INFO Using non-device net plugin version 0
+cn11-dgx:78656:80794 [1] NCCL INFO Using network IB
+cn11-dgx:78656:80794 [1] NCCL INFO DMA-BUF is available on GPU device 1
+cn11-dgx:78655:80793 [0] NCCL INFO ncclCommInitRank comm 0x55cedabdcd80 rank 0 nranks 2 cudaDev 0 nvmlDev 0 busId 7000 commId 0xfba36c2e946e135d - Init START
+cn11-dgx:78656:80794 [1] NCCL INFO ncclCommInitRank comm 0x560b36eacbf0 rank 1 nranks 2 cudaDev 1 nvmlDev 1 busId 4e000 commId 0xfba36c2e946e135d - Init START
+cn11-dgx:78655:80793 [0] NCCL INFO comm 0x55cedabdcd80 rank 0 nRanks 2 nNodes 1 localRanks 2 localRank 0 MNNVL 0
+cn11-dgx:78656:80794 [1] NCCL INFO comm 0x560b36eacbf0 rank 1 nRanks 2 nNodes 1 localRanks 2 localRank 1 MNNVL 0
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 00/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 01/24 :    0   1
+cn11-dgx:78656:80794 [1] NCCL INFO Trees [0] -1/-1/-1->1->0 [1] -1/-1/-1->1->0 [2] -1/-1/-1->1->0 [3] -1/-1/-1->1->0 [4] -1/-1/-1->1->0 [5] -1/-1/-1->1->0 [6] 0/-1/-1->1->-1 [7] 0/-1/-1->1->-1 [8] 0/-1/-1->1->-1 [9] 0/-1/-1->1->-1 [10] 0/-1/-1->1->-1 [11] 0/-1/-1->1->-1 [12] -1/-1/-1->1->0 [13] -1/-1/-1->1->0 [14] -1/-1/-1->1->0 [15] -1/-1/-1->1->0 [16] -1/-1/-1->1->0 [17] -1/-1/-1->1->0 [18] 0/-1/-1->1->-1 [19] 0/-1/-1->1->-1 [20] 0/-1/-1->1->-1 [21] 0/-1/-1->1->-1 [22] 0/-1/-1->1->-1 [23] 0/-1/-1->1->-1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 02/24 :    0   1
+cn11-dgx:78656:80794 [1] NCCL INFO P2P Chunksize set to 524288
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 03/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 04/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 05/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 06/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 07/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 08/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 09/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 10/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 11/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 12/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 13/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 14/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 15/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 16/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 17/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 18/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 19/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 20/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 21/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 22/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 23/24 :    0   1
+cn11-dgx:78655:80793 [0] NCCL INFO Trees [0] 1/-1/-1->0->-1 [1] 1/-1/-1->0->-1 [2] 1/-1/-1->0->-1 [3] 1/-1/-1->0->-1 [4] 1/-1/-1->0->-1 [5] 1/-1/-1->0->-1 [6] -1/-1/-1->0->1 [7] -1/-1/-1->0->1 [8] -1/-1/-1->0->1 [9] -1/-1/-1->0->1 [10] -1/-1/-1->0->1 [11] -1/-1/-1->0->1 [12] 1/-1/-1->0->-1 [13] 1/-1/-1->0->-1 [14] 1/-1/-1->0->-1 [15] 1/-1/-1->0->-1 [16] 1/-1/-1->0->-1 [17] 1/-1/-1->0->-1 [18] -1/-1/-1->0->1 [19] -1/-1/-1->0->1 [20] -1/-1/-1->0->1 [21] -1/-1/-1->0->1 [22] -1/-1/-1->0->1 [23] -1/-1/-1->0->1
+cn11-dgx:78655:80793 [0] NCCL INFO P2P Chunksize set to 524288
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 00/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 01/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 00/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 02/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 01/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 03/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 02/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 04/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 03/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 05/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 06/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 04/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 07/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 05/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 08/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 06/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 09/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 07/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 10/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 08/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 11/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 09/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 12/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 13/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 10/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 14/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 11/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 15/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 12/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 16/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 13/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 17/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 18/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 14/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 19/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 15/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 20/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 16/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 21/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 17/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 22/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78655:80793 [0] NCCL INFO Channel 23/0 : 0[0] -> 1[1] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 18/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 19/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 20/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 21/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 22/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Channel 23/0 : 1[1] -> 0[0] via P2P/CUMEM/read
+cn11-dgx:78656:80794 [1] NCCL INFO Connected all rings
+cn11-dgx:78655:80793 [0] NCCL INFO Connected all rings
+cn11-dgx:78656:80794 [1] NCCL INFO Connected all trees
+cn11-dgx:78655:80793 [0] NCCL INFO Connected all trees
+cn11-dgx:78656:80794 [1] NCCL INFO threadThresholds 8/8/64 | 16/8/64 | 512 | 512
+cn11-dgx:78656:80794 [1] NCCL INFO 24 coll channels, 24 collnet channels, 0 nvls channels, 32 p2p channels, 32 p2p channels per peer
+cn11-dgx:78655:80793 [0] NCCL INFO threadThresholds 8/8/64 | 16/8/64 | 512 | 512
+cn11-dgx:78655:80793 [0] NCCL INFO 24 coll channels, 24 collnet channels, 0 nvls channels, 32 p2p channels, 32 p2p channels per peer
+cn11-dgx:78655:80793 [0] NCCL INFO TUNER/Plugin: Plugin load returned 2 : libnccl-net.so: cannot open shared object file: No such file or directory : when loading libnccl-tuner.so
+cn11-dgx:78656:80794 [1] NCCL INFO TUNER/Plugin: Plugin load returned 2 : libnccl-net.so: cannot open shared object file: No such file or directory : when loading libnccl-tuner.so
+cn11-dgx:78655:80793 [0] NCCL INFO TUNER/Plugin: Using internal tuner plugin.
+cn11-dgx:78656:80794 [1] NCCL INFO TUNER/Plugin: Using internal tuner plugin.
+cn11-dgx:78655:80793 [0] NCCL INFO ncclCommInitRank comm 0x55cedabdcd80 rank 0 nranks 2 cudaDev 0 nvmlDev 0 busId 7000 commId 0xfba36c2e946e135d - Init COMPLETE
+cn11-dgx:78656:80794 [1] NCCL INFO ncclCommInitRank comm 0x560b36eacbf0 rank 1 nranks 2 cudaDev 1 nvmlDev 1 busId 4e000 commId 0xfba36c2e946e135d - Init COMPLETE
+  AMP dtype : torch.bfloat16  |  GradScaler: False
+  Epoch [1/100]  Batch [   0/25]  Loss: 6.0604  LR: 4.00e-05
+  Epoch [1/100]  Batch [  10/25]  Loss: 5.5509  LR: 4.00e-05
+  Epoch [1/100]  Batch [  20/25]  Loss: 5.1119  LR: 4.00e-05
+
+------------------------------------------------------------
+  Epoch   1/100 complete  |  Avg Loss: 5.4541  |  LR: 8.00e-05
+------------------------------------------------------------
+
+  Epoch [2/100]  Batch [   0/25]  Loss: 4.7110  LR: 8.00e-05
+  Epoch [2/100]  Batch [  10/25]  Loss: 4.2723  LR: 8.00e-05
+  Epoch [2/100]  Batch [  20/25]  Loss: 4.1503  LR: 8.00e-05
+
+------------------------------------------------------------
+  Epoch   2/100 complete  |  Avg Loss: 4.3615  |  LR: 1.20e-04
+------------------------------------------------------------
+
+  Epoch [3/100]  Batch [   0/25]  Loss: 4.3064  LR: 1.20e-04
+  Epoch [3/100]  Batch [  10/25]  Loss: 4.1404  LR: 1.20e-04
+  Epoch [3/100]  Batch [  20/25]  Loss: 3.6450  LR: 1.20e-04
+
+------------------------------------------------------------
+  Epoch   3/100 complete  |  Avg Loss: 3.8480  |  LR: 1.60e-04
+------------------------------------------------------------
+
+  Epoch [4/100]  Batch [   0/25]  Loss: 3.6474  LR: 1.60e-04
+  Epoch [4/100]  Batch [  10/25]  Loss: 3.5443  LR: 1.60e-04
+  Epoch [4/100]  Batch [  20/25]  Loss: 3.5147  LR: 1.60e-04
+
+------------------------------------------------------------
+  Epoch   4/100 complete  |  Avg Loss: 3.6098  |  LR: 2.00e-04
+------------------------------------------------------------
+
+  Epoch [5/100]  Batch [   0/25]  Loss: 3.5037  LR: 2.00e-04
+  Epoch [5/100]  Batch [  10/25]  Loss: 3.5807  LR: 2.00e-04
+  Epoch [5/100]  Batch [  20/25]  Loss: 3.4780  LR: 2.00e-04
+
+------------------------------------------------------------
+  Epoch   5/100 complete  |  Avg Loss: 3.4704  |  LR: 2.00e-04
+------------------------------------------------------------
+
+  Epoch [6/100]  Batch [   0/25]  Loss: 3.3934  LR: 2.00e-04
+  Epoch [6/100]  Batch [  10/25]  Loss: 3.2667  LR: 2.00e-04
+  Epoch [6/100]  Batch [  20/25]  Loss: 3.2569  LR: 2.00e-04
+
+------------------------------------------------------------
+  Epoch   6/100 complete  |  Avg Loss: 3.3623  |  LR: 2.00e-04
+------------------------------------------------------------
+
+  Epoch [7/100]  Batch [   0/25]  Loss: 3.2495  LR: 2.00e-04
+  Epoch [7/100]  Batch [  10/25]  Loss: 3.3637  LR: 2.00e-04
+  Epoch [7/100]  Batch [  20/25]  Loss: 3.2258  LR: 2.00e-04
+
+------------------------------------------------------------
+  Epoch   7/100 complete  |  Avg Loss: 3.2883  |  LR: 2.00e-04
+------------------------------------------------------------
+
+  Epoch [8/100]  Batch [   0/25]  Loss: 3.3785  LR: 2.00e-04
+  Epoch [8/100]  Batch [  10/25]  Loss: 3.1794  LR: 2.00e-04
+  Epoch [8/100]  Batch [  20/25]  Loss: 3.2808  LR: 2.00e-04
+
+------------------------------------------------------------
+  Epoch   8/100 complete  |  Avg Loss: 3.2319  |  LR: 2.00e-04
+------------------------------------------------------------
+
+  Epoch [9/100]  Batch [   0/25]  Loss: 3.2237  LR: 2.00e-04
+  Epoch [9/100]  Batch [  10/25]  Loss: 3.2859  LR: 2.00e-04
+  Epoch [9/100]  Batch [  20/25]  Loss: 3.1314  LR: 2.00e-04
+
+------------------------------------------------------------
+  Epoch   9/100 complete  |  Avg Loss: 3.2009  |  LR: 1.99e-04
+------------------------------------------------------------
+
+  Epoch [10/100]  Batch [   0/25]  Loss: 3.2518  LR: 1.99e-04
+  Epoch [10/100]  Batch [  10/25]  Loss: 3.1248  LR: 1.99e-04
+  Epoch [10/100]  Batch [  20/25]  Loss: 3.2234  LR: 1.99e-04
+
+------------------------------------------------------------
+  Epoch  10/100 complete  |  Avg Loss: 3.1707  |  LR: 1.99e-04
+------------------------------------------------------------
+
+  Epoch [11/100]  Batch [   0/25]  Loss: 3.1628  LR: 1.99e-04
+  Epoch [11/100]  Batch [  10/25]  Loss: 3.1654  LR: 1.99e-04
+  Epoch [11/100]  Batch [  20/25]  Loss: 3.1276  LR: 1.99e-04
+
+------------------------------------------------------------
+  Epoch  11/100 complete  |  Avg Loss: 3.1592  |  LR: 1.98e-04
+------------------------------------------------------------
+
+  Epoch [12/100]  Batch [   0/25]  Loss: 3.1472  LR: 1.98e-04
+  Epoch [12/100]  Batch [  10/25]  Loss: 3.1305  LR: 1.98e-04
+  Epoch [12/100]  Batch [  20/25]  Loss: 3.1936  LR: 1.98e-04
+
+------------------------------------------------------------
+  Epoch  12/100 complete  |  Avg Loss: 3.1369  |  LR: 1.97e-04
+------------------------------------------------------------
+
+  Epoch [13/100]  Batch [   0/25]  Loss: 3.0904  LR: 1.97e-04
+  Epoch [13/100]  Batch [  10/25]  Loss: 3.1375  LR: 1.97e-04
+  Epoch [13/100]  Batch [  20/25]  Loss: 3.1452  LR: 1.97e-04
+
+------------------------------------------------------------
+  Epoch  13/100 complete  |  Avg Loss: 3.1293  |  LR: 1.97e-04
+------------------------------------------------------------
+
+  Epoch [14/100]  Batch [   0/25]  Loss: 3.1685  LR: 1.97e-04
+  Epoch [14/100]  Batch [  10/25]  Loss: 3.1576  LR: 1.97e-04
+  Epoch [14/100]  Batch [  20/25]  Loss: 3.0952  LR: 1.97e-04
+
+------------------------------------------------------------
+  Epoch  14/100 complete  |  Avg Loss: 3.1247  |  LR: 1.96e-04
+------------------------------------------------------------
+
+  Epoch [15/100]  Batch [   0/25]  Loss: 3.0811  LR: 1.96e-04
+  Epoch [15/100]  Batch [  10/25]  Loss: 3.1353  LR: 1.96e-04
+  Epoch [15/100]  Batch [  20/25]  Loss: 3.0920  LR: 1.96e-04
+
+------------------------------------------------------------
+  Epoch  15/100 complete  |  Avg Loss: 3.1165  |  LR: 1.95e-04
+------------------------------------------------------------
+
+  Epoch [16/100]  Batch [   0/25]  Loss: 3.0998  LR: 1.95e-04
+  Epoch [16/100]  Batch [  10/25]  Loss: 3.0918  LR: 1.95e-04
+  Epoch [16/100]  Batch [  20/25]  Loss: 3.0860  LR: 1.95e-04
+
+------------------------------------------------------------
+  Epoch  16/100 complete  |  Avg Loss: 3.1022  |  LR: 1.93e-04
+------------------------------------------------------------
+
+  Epoch [17/100]  Batch [   0/25]  Loss: 3.1371  LR: 1.93e-04
+  Epoch [17/100]  Batch [  10/25]  Loss: 3.0940  LR: 1.93e-04
+  Epoch [17/100]  Batch [  20/25]  Loss: 3.0838  LR: 1.93e-04
+
+------------------------------------------------------------
+  Epoch  17/100 complete  |  Avg Loss: 3.1015  |  LR: 1.92e-04
+------------------------------------------------------------
+
+  Epoch [18/100]  Batch [   0/25]  Loss: 3.1170  LR: 1.92e-04
+  Epoch [18/100]  Batch [  10/25]  Loss: 3.0775  LR: 1.92e-04
+  Epoch [18/100]  Batch [  20/25]  Loss: 3.1042  LR: 1.92e-04
+
+------------------------------------------------------------
+  Epoch  18/100 complete  |  Avg Loss: 3.1003  |  LR: 1.91e-04
+------------------------------------------------------------
+
+  Epoch [19/100]  Batch [   0/25]  Loss: 3.0862  LR: 1.91e-04
+  Epoch [19/100]  Batch [  10/25]  Loss: 3.0722  LR: 1.91e-04
+  Epoch [19/100]  Batch [  20/25]  Loss: 3.0937  LR: 1.91e-04
+
+------------------------------------------------------------
+  Epoch  19/100 complete  |  Avg Loss: 3.0908  |  LR: 1.89e-04
+------------------------------------------------------------
+
+  Epoch [20/100]  Batch [   0/25]  Loss: 3.0698  LR: 1.89e-04
+  Epoch [20/100]  Batch [  10/25]  Loss: 3.0584  LR: 1.89e-04
+  Epoch [20/100]  Batch [  20/25]  Loss: 3.0762  LR: 1.89e-04
+
+------------------------------------------------------------
+  Epoch  20/100 complete  |  Avg Loss: 3.0802  |  LR: 1.88e-04
+------------------------------------------------------------
+
+  Epoch [21/100]  Batch [   0/25]  Loss: 3.0881  LR: 1.88e-04
+  Epoch [21/100]  Batch [  10/25]  Loss: 3.0684  LR: 1.88e-04
+  Epoch [21/100]  Batch [  20/25]  Loss: 3.0766  LR: 1.88e-04
+
+------------------------------------------------------------
+  Epoch  21/100 complete  |  Avg Loss: 3.0766  |  LR: 1.86e-04
+------------------------------------------------------------
+
+  Epoch [22/100]  Batch [   0/25]  Loss: 3.0649  LR: 1.86e-04
+  Epoch [22/100]  Batch [  10/25]  Loss: 3.1090  LR: 1.86e-04
+  Epoch [22/100]  Batch [  20/25]  Loss: 3.1059  LR: 1.86e-04
+
+------------------------------------------------------------
+  Epoch  22/100 complete  |  Avg Loss: 3.0763  |  LR: 1.85e-04
+------------------------------------------------------------
+
+  Epoch [23/100]  Batch [   0/25]  Loss: 3.0537  LR: 1.85e-04
+  Epoch [23/100]  Batch [  10/25]  Loss: 3.0673  LR: 1.85e-04
+  Epoch [23/100]  Batch [  20/25]  Loss: 3.0738  LR: 1.85e-04
+
+------------------------------------------------------------
+  Epoch  23/100 complete  |  Avg Loss: 3.0731  |  LR: 1.83e-04
+------------------------------------------------------------
+
+  Epoch [24/100]  Batch [   0/25]  Loss: 3.1012  LR: 1.83e-04
+  Epoch [24/100]  Batch [  10/25]  Loss: 3.0636  LR: 1.83e-04
+  Epoch [24/100]  Batch [  20/25]  Loss: 3.0481  LR: 1.83e-04
+
+------------------------------------------------------------
+  Epoch  24/100 complete  |  Avg Loss: 3.0637  |  LR: 1.81e-04
+------------------------------------------------------------
+
+  Epoch [25/100]  Batch [   0/25]  Loss: 3.0577  LR: 1.81e-04
+  Epoch [25/100]  Batch [  10/25]  Loss: 3.0686  LR: 1.81e-04
+  Epoch [25/100]  Batch [  20/25]  Loss: 3.0625  LR: 1.81e-04
+
+------------------------------------------------------------
+  Epoch  25/100 complete  |  Avg Loss: 3.0660  |  LR: 1.79e-04
+------------------------------------------------------------
+
+  Epoch [26/100]  Batch [   0/25]  Loss: 3.0657  LR: 1.79e-04
+  Epoch [26/100]  Batch [  10/25]  Loss: 3.0440  LR: 1.79e-04
+  Epoch [26/100]  Batch [  20/25]  Loss: 3.0665  LR: 1.79e-04
+
+------------------------------------------------------------
+  Epoch  26/100 complete  |  Avg Loss: 3.0649  |  LR: 1.77e-04
+------------------------------------------------------------
+
+  Epoch [27/100]  Batch [   0/25]  Loss: 3.0770  LR: 1.77e-04
+  Epoch [27/100]  Batch [  10/25]  Loss: 3.0442  LR: 1.77e-04
+  Epoch [27/100]  Batch [  20/25]  Loss: 3.0744  LR: 1.77e-04
+
+------------------------------------------------------------
+  Epoch  27/100 complete  |  Avg Loss: 3.0596  |  LR: 1.75e-04
+------------------------------------------------------------
+
+  Epoch [28/100]  Batch [   0/25]  Loss: 3.0815  LR: 1.75e-04
+  Epoch [28/100]  Batch [  10/25]  Loss: 3.0489  LR: 1.75e-04
+  Epoch [28/100]  Batch [  20/25]  Loss: 3.1109  LR: 1.75e-04
+
+------------------------------------------------------------
+  Epoch  28/100 complete  |  Avg Loss: 3.0606  |  LR: 1.72e-04
+------------------------------------------------------------
+
+  Epoch [29/100]  Batch [   0/25]  Loss: 3.0421  LR: 1.72e-04
+  Epoch [29/100]  Batch [  10/25]  Loss: 3.0757  LR: 1.72e-04
+  Epoch [29/100]  Batch [  20/25]  Loss: 3.0549  LR: 1.72e-04
+
+------------------------------------------------------------
+  Epoch  29/100 complete  |  Avg Loss: 3.0629  |  LR: 1.70e-04
+------------------------------------------------------------
+
+  Epoch [30/100]  Batch [   0/25]  Loss: 3.0691  LR: 1.70e-04
+  Epoch [30/100]  Batch [  10/25]  Loss: 3.0556  LR: 1.70e-04
+  Epoch [30/100]  Batch [  20/25]  Loss: 3.0378  LR: 1.70e-04
+
+------------------------------------------------------------
+  Epoch  30/100 complete  |  Avg Loss: 3.0548  |  LR: 1.68e-04
+------------------------------------------------------------
+
+  Epoch [31/100]  Batch [   0/25]  Loss: 3.0329  LR: 1.68e-04
+  Epoch [31/100]  Batch [  10/25]  Loss: 3.0632  LR: 1.68e-04
+  Epoch [31/100]  Batch [  20/25]  Loss: 3.0492  LR: 1.68e-04
+
+------------------------------------------------------------
+  Epoch  31/100 complete  |  Avg Loss: 3.0567  |  LR: 1.65e-04
+------------------------------------------------------------
+
+  Epoch [32/100]  Batch [   0/25]  Loss: 3.0601  LR: 1.65e-04
+  Epoch [32/100]  Batch [  10/25]  Loss: 3.0513  LR: 1.65e-04
+  Epoch [32/100]  Batch [  20/25]  Loss: 3.0620  LR: 1.65e-04
+
+------------------------------------------------------------
+  Epoch  32/100 complete  |  Avg Loss: 3.0541  |  LR: 1.63e-04
+------------------------------------------------------------
+
+  Epoch [33/100]  Batch [   0/25]  Loss: 3.0436  LR: 1.63e-04
+  Epoch [33/100]  Batch [  10/25]  Loss: 3.0484  LR: 1.63e-04
+  Epoch [33/100]  Batch [  20/25]  Loss: 3.0635  LR: 1.63e-04
+
+------------------------------------------------------------
+  Epoch  33/100 complete  |  Avg Loss: 3.0481  |  LR: 1.60e-04
+------------------------------------------------------------
+
+  Epoch [34/100]  Batch [   0/25]  Loss: 3.0322  LR: 1.60e-04
+  Epoch [34/100]  Batch [  10/25]  Loss: 3.0306  LR: 1.60e-04
+  Epoch [34/100]  Batch [  20/25]  Loss: 3.0483  LR: 1.60e-04
+
+------------------------------------------------------------
+  Epoch  34/100 complete  |  Avg Loss: 3.0464  |  LR: 1.57e-04
+------------------------------------------------------------
+
+  Epoch [35/100]  Batch [   0/25]  Loss: 3.0565  LR: 1.57e-04
+  Epoch [35/100]  Batch [  10/25]  Loss: 3.0464  LR: 1.57e-04
+  Epoch [35/100]  Batch [  20/25]  Loss: 3.0541  LR: 1.57e-04
+
+------------------------------------------------------------
+  Epoch  35/100 complete  |  Avg Loss: 3.0449  |  LR: 1.55e-04
+------------------------------------------------------------
+
+  Epoch [36/100]  Batch [   0/25]  Loss: 3.0306  LR: 1.55e-04
+  Epoch [36/100]  Batch [  10/25]  Loss: 3.0429  LR: 1.55e-04
+  Epoch [36/100]  Batch [  20/25]  Loss: 3.0361  LR: 1.55e-04
+
+------------------------------------------------------------
+  Epoch  36/100 complete  |  Avg Loss: 3.0399  |  LR: 1.52e-04
+------------------------------------------------------------
+
+  Epoch [37/100]  Batch [   0/25]  Loss: 3.0275  LR: 1.52e-04
+  Epoch [37/100]  Batch [  10/25]  Loss: 3.0440  LR: 1.52e-04
+  Epoch [37/100]  Batch [  20/25]  Loss: 3.0557  LR: 1.52e-04
+
+------------------------------------------------------------
+  Epoch  37/100 complete  |  Avg Loss: 3.0451  |  LR: 1.49e-04
+------------------------------------------------------------
+
+  Epoch [38/100]  Batch [   0/25]  Loss: 3.0475  LR: 1.49e-04
+  Epoch [38/100]  Batch [  10/25]  Loss: 3.0582  LR: 1.49e-04
+  Epoch [38/100]  Batch [  20/25]  Loss: 3.0348  LR: 1.49e-04
+
+------------------------------------------------------------
+  Epoch  38/100 complete  |  Avg Loss: 3.0371  |  LR: 1.46e-04
+------------------------------------------------------------
+
+  Epoch [39/100]  Batch [   0/25]  Loss: 3.0377  LR: 1.46e-04
+  Epoch [39/100]  Batch [  10/25]  Loss: 3.0212  LR: 1.46e-04
+  Epoch [39/100]  Batch [  20/25]  Loss: 3.0190  LR: 1.46e-04
+
+------------------------------------------------------------
+  Epoch  39/100 complete  |  Avg Loss: 3.0324  |  LR: 1.43e-04
+------------------------------------------------------------
+
+  Epoch [40/100]  Batch [   0/25]  Loss: 3.0354  LR: 1.43e-04
+  Epoch [40/100]  Batch [  10/25]  Loss: 3.0425  LR: 1.43e-04
+  Epoch [40/100]  Batch [  20/25]  Loss: 3.0203  LR: 1.43e-04
+
+------------------------------------------------------------
+  Epoch  40/100 complete  |  Avg Loss: 3.0328  |  LR: 1.40e-04
+------------------------------------------------------------
+
+  Epoch [41/100]  Batch [   0/25]  Loss: 3.0368  LR: 1.40e-04
+  Epoch [41/100]  Batch [  10/25]  Loss: 3.0463  LR: 1.40e-04
+  Epoch [41/100]  Batch [  20/25]  Loss: 3.0189  LR: 1.40e-04
+
+------------------------------------------------------------
+  Epoch  41/100 complete  |  Avg Loss: 3.0278  |  LR: 1.37e-04
+------------------------------------------------------------
+
+  Epoch [42/100]  Batch [   0/25]  Loss: 3.0251  LR: 1.37e-04
+  Epoch [42/100]  Batch [  10/25]  Loss: 3.0081  LR: 1.37e-04
+  Epoch [42/100]  Batch [  20/25]  Loss: 3.0087  LR: 1.37e-04
+
+------------------------------------------------------------
+  Epoch  42/100 complete  |  Avg Loss: 3.0207  |  LR: 1.34e-04
+------------------------------------------------------------
+
+  Epoch [43/100]  Batch [   0/25]  Loss: 3.0504  LR: 1.34e-04
+  Epoch [43/100]  Batch [  10/25]  Loss: 3.0487  LR: 1.34e-04
+  Epoch [43/100]  Batch [  20/25]  Loss: 2.9953  LR: 1.34e-04
+
+------------------------------------------------------------
+  Epoch  43/100 complete  |  Avg Loss: 3.0235  |  LR: 1.31e-04
+------------------------------------------------------------
+
+  Epoch [44/100]  Batch [   0/25]  Loss: 2.9785  LR: 1.31e-04
+  Epoch [44/100]  Batch [  10/25]  Loss: 2.9712  LR: 1.31e-04
+  Epoch [44/100]  Batch [  20/25]  Loss: 2.9901  LR: 1.31e-04
+
+------------------------------------------------------------
+  Epoch  44/100 complete  |  Avg Loss: 2.9894  |  LR: 1.28e-04
+------------------------------------------------------------
+
+  Epoch [45/100]  Batch [   0/25]  Loss: 2.9412  LR: 1.28e-04
+  Epoch [45/100]  Batch [  10/25]  Loss: 2.8750  LR: 1.28e-04
+  Epoch [45/100]  Batch [  20/25]  Loss: 2.6576  LR: 1.28e-04
+
+------------------------------------------------------------
+  Epoch  45/100 complete  |  Avg Loss: 2.8161  |  LR: 1.25e-04
+------------------------------------------------------------
+
+  Epoch [46/100]  Batch [   0/25]  Loss: 2.6510  LR: 1.25e-04
+  Epoch [46/100]  Batch [  10/25]  Loss: 2.4195  LR: 1.25e-04
+  Epoch [46/100]  Batch [  20/25]  Loss: 2.0796  LR: 1.25e-04
+
+------------------------------------------------------------
+  Epoch  46/100 complete  |  Avg Loss: 2.3014  |  LR: 1.21e-04
+------------------------------------------------------------
+
+  Epoch [47/100]  Batch [   0/25]  Loss: 1.7418  LR: 1.21e-04
+  Epoch [47/100]  Batch [  10/25]  Loss: 1.5836  LR: 1.21e-04
+  Epoch [47/100]  Batch [  20/25]  Loss: 1.2679  LR: 1.21e-04
+
+------------------------------------------------------------
+  Epoch  47/100 complete  |  Avg Loss: 1.6399  |  LR: 1.18e-04
+------------------------------------------------------------
+
+  Epoch [48/100]  Batch [   0/25]  Loss: 1.3395  LR: 1.18e-04
+  Epoch [48/100]  Batch [  10/25]  Loss: 1.1986  LR: 1.18e-04
+  Epoch [48/100]  Batch [  20/25]  Loss: 0.9913  LR: 1.18e-04
+
+------------------------------------------------------------
+  Epoch  48/100 complete  |  Avg Loss: 1.1510  |  LR: 1.15e-04
+------------------------------------------------------------
+
+  Epoch [49/100]  Batch [   0/25]  Loss: 0.8919  LR: 1.15e-04
+  Epoch [49/100]  Batch [  10/25]  Loss: 0.8545  LR: 1.15e-04
+  Epoch [49/100]  Batch [  20/25]  Loss: 0.3855  LR: 1.15e-04
+
+------------------------------------------------------------
+  Epoch  49/100 complete  |  Avg Loss: 0.5900  |  LR: 1.12e-04
+------------------------------------------------------------
+
+  Epoch [50/100]  Batch [   0/25]  Loss: 0.3123  LR: 1.12e-04
+  Epoch [50/100]  Batch [  10/25]  Loss: 0.3851  LR: 1.12e-04
+  Epoch [50/100]  Batch [  20/25]  Loss: 0.1637  LR: 1.12e-04
+
+------------------------------------------------------------
+  Epoch  50/100 complete  |  Avg Loss: 0.1768  |  LR: 1.08e-04
+------------------------------------------------------------
+
+  Epoch [51/100]  Batch [   0/25]  Loss: -0.1166  LR: 1.08e-04
+  Epoch [51/100]  Batch [  10/25]  Loss: -0.4584  LR: 1.08e-04
+  Epoch [51/100]  Batch [  20/25]  Loss: 0.0482  LR: 1.08e-04
+
+------------------------------------------------------------
+  Epoch  51/100 complete  |  Avg Loss: -0.2253  |  LR: 1.05e-04
+------------------------------------------------------------
+
+  Epoch [52/100]  Batch [   0/25]  Loss: -0.5489  LR: 1.05e-04
+  Epoch [52/100]  Batch [  10/25]  Loss: -0.4789  LR: 1.05e-04
+  Epoch [52/100]  Batch [  20/25]  Loss: -0.9836  LR: 1.05e-04
+
+------------------------------------------------------------
+  Epoch  52/100 complete  |  Avg Loss: -0.7172  |  LR: 1.02e-04
+------------------------------------------------------------
+
+  Epoch [53/100]  Batch [   0/25]  Loss: -0.8024  LR: 1.02e-04
+  Epoch [53/100]  Batch [  10/25]  Loss: -0.9332  LR: 1.02e-04
+  Epoch [53/100]  Batch [  20/25]  Loss: -1.3460  LR: 1.02e-04
+
+------------------------------------------------------------
+  Epoch  53/100 complete  |  Avg Loss: -1.2123  |  LR: 9.83e-05
+------------------------------------------------------------
+
+  Epoch [54/100]  Batch [   0/25]  Loss: -1.4905  LR: 9.83e-05
+  Epoch [54/100]  Batch [  10/25]  Loss: -1.5750  LR: 9.83e-05
+  Epoch [54/100]  Batch [  20/25]  Loss: -1.9244  LR: 9.83e-05
+
+------------------------------------------------------------
+  Epoch  54/100 complete  |  Avg Loss: -1.4604  |  LR: 9.50e-05
+------------------------------------------------------------
+
+  Epoch [55/100]  Batch [   0/25]  Loss: -1.7643  LR: 9.50e-05
+  Epoch [55/100]  Batch [  10/25]  Loss: -1.7670  LR: 9.50e-05
+  Epoch [55/100]  Batch [  20/25]  Loss: -1.8987  LR: 9.50e-05
+
+------------------------------------------------------------
+  Epoch  55/100 complete  |  Avg Loss: -1.9819  |  LR: 9.17e-05
+------------------------------------------------------------
+
+  Epoch [56/100]  Batch [   0/25]  Loss: -2.0144  LR: 9.17e-05
+  Epoch [56/100]  Batch [  10/25]  Loss: -1.9310  LR: 9.17e-05
+  Epoch [56/100]  Batch [  20/25]  Loss: -2.6412  LR: 9.17e-05
+
+------------------------------------------------------------
+  Epoch  56/100 complete  |  Avg Loss: -2.3197  |  LR: 8.85e-05
+------------------------------------------------------------
+
+  Epoch [57/100]  Batch [   0/25]  Loss: -2.3687  LR: 8.85e-05
+  Epoch [57/100]  Batch [  10/25]  Loss: -2.8276  LR: 8.85e-05
+  Epoch [57/100]  Batch [  20/25]  Loss: -2.6717  LR: 8.85e-05
+
+------------------------------------------------------------
+  Epoch  57/100 complete  |  Avg Loss: -2.7071  |  LR: 8.52e-05
+------------------------------------------------------------
+
+  Epoch [58/100]  Batch [   0/25]  Loss: -3.2548  LR: 8.52e-05
+  Epoch [58/100]  Batch [  10/25]  Loss: -3.3177  LR: 8.52e-05
+  Epoch [58/100]  Batch [  20/25]  Loss: -3.0861  LR: 8.52e-05
+
+------------------------------------------------------------
+  Epoch  58/100 complete  |  Avg Loss: -3.0497  |  LR: 8.19e-05
+------------------------------------------------------------
+
+  Epoch [59/100]  Batch [   0/25]  Loss: -3.3693  LR: 8.19e-05
+  Epoch [59/100]  Batch [  10/25]  Loss: -3.7160  LR: 8.19e-05
+  Epoch [59/100]  Batch [  20/25]  Loss: -3.6956  LR: 8.19e-05
+
+------------------------------------------------------------
+  Epoch  59/100 complete  |  Avg Loss: -3.4094  |  LR: 7.87e-05
+------------------------------------------------------------
+
+  Epoch [60/100]  Batch [   0/25]  Loss: -3.6830  LR: 7.87e-05
+  Epoch [60/100]  Batch [  10/25]  Loss: -2.8593  LR: 7.87e-05
+  Epoch [60/100]  Batch [  20/25]  Loss: -3.3675  LR: 7.87e-05
+
+------------------------------------------------------------
+  Epoch  60/100 complete  |  Avg Loss: -3.5128  |  LR: 7.55e-05
+------------------------------------------------------------
+
+  Epoch [61/100]  Batch [   0/25]  Loss: -3.8206  LR: 7.55e-05
+  Epoch [61/100]  Batch [  10/25]  Loss: -3.3378  LR: 7.55e-05
+  Epoch [61/100]  Batch [  20/25]  Loss: -4.0707  LR: 7.55e-05
+
+------------------------------------------------------------
+  Epoch  61/100 complete  |  Avg Loss: -3.7102  |  LR: 7.23e-05
+------------------------------------------------------------
+
+  Epoch [62/100]  Batch [   0/25]  Loss: -3.5578  LR: 7.23e-05
+  Epoch [62/100]  Batch [  10/25]  Loss: -3.7758  LR: 7.23e-05
+  Epoch [62/100]  Batch [  20/25]  Loss: -3.8597  LR: 7.23e-05
+
+------------------------------------------------------------
+  Epoch  62/100 complete  |  Avg Loss: -3.9729  |  LR: 6.91e-05
+------------------------------------------------------------
+
+  Epoch [63/100]  Batch [   0/25]  Loss: -3.7175  LR: 6.91e-05
+  Epoch [63/100]  Batch [  10/25]  Loss: -4.2392  LR: 6.91e-05
+  Epoch [63/100]  Batch [  20/25]  Loss: -4.2320  LR: 6.91e-05
+
+------------------------------------------------------------
+  Epoch  63/100 complete  |  Avg Loss: -4.0981  |  LR: 6.60e-05
+------------------------------------------------------------
+
+  Epoch [64/100]  Batch [   0/25]  Loss: -4.6479  LR: 6.60e-05
+  Epoch [64/100]  Batch [  10/25]  Loss: -4.3835  LR: 6.60e-05
+  Epoch [64/100]  Batch [  20/25]  Loss: -4.4395  LR: 6.60e-05
+
+------------------------------------------------------------
+  Epoch  64/100 complete  |  Avg Loss: -4.2549  |  LR: 6.29e-05
+------------------------------------------------------------
+
+  Epoch [65/100]  Batch [   0/25]  Loss: -4.0691  LR: 6.29e-05
+  Epoch [65/100]  Batch [  10/25]  Loss: -4.1803  LR: 6.29e-05
+  Epoch [65/100]  Batch [  20/25]  Loss: -4.4672  LR: 6.29e-05
+
+------------------------------------------------------------
+  Epoch  65/100 complete  |  Avg Loss: -4.3361  |  LR: 5.98e-05
+------------------------------------------------------------
+
+  Epoch [66/100]  Batch [   0/25]  Loss: -4.5692  LR: 5.98e-05
+  Epoch [66/100]  Batch [  10/25]  Loss: -4.7651  LR: 5.98e-05
+  Epoch [66/100]  Batch [  20/25]  Loss: -4.0556  LR: 5.98e-05
+
+------------------------------------------------------------
+  Epoch  66/100 complete  |  Avg Loss: -4.3815  |  LR: 5.68e-05
+------------------------------------------------------------
+
+  Epoch [67/100]  Batch [   0/25]  Loss: -4.4254  LR: 5.68e-05
+  Epoch [67/100]  Batch [  10/25]  Loss: -5.0096  LR: 5.68e-05
+  Epoch [67/100]  Batch [  20/25]  Loss: -4.5650  LR: 5.68e-05
+
+------------------------------------------------------------
+  Epoch  67/100 complete  |  Avg Loss: -4.5694  |  LR: 5.39e-05
+------------------------------------------------------------
+
+  Epoch [68/100]  Batch [   0/25]  Loss: -4.5633  LR: 5.39e-05
+  Epoch [68/100]  Batch [  10/25]  Loss: -4.7279  LR: 5.39e-05
+  Epoch [68/100]  Batch [  20/25]  Loss: -4.5887  LR: 5.39e-05
+
+------------------------------------------------------------
+  Epoch  68/100 complete  |  Avg Loss: -4.6427  |  LR: 5.10e-05
+------------------------------------------------------------
+
+  Epoch [69/100]  Batch [   0/25]  Loss: -5.0809  LR: 5.10e-05
+  Epoch [69/100]  Batch [  10/25]  Loss: -4.5873  LR: 5.10e-05
+  Epoch [69/100]  Batch [  20/25]  Loss: -4.4296  LR: 5.10e-05
+
+------------------------------------------------------------
+  Epoch  69/100 complete  |  Avg Loss: -4.7317  |  LR: 4.81e-05
+------------------------------------------------------------
+
+  Epoch [70/100]  Batch [   0/25]  Loss: -5.0491  LR: 4.81e-05
+  Epoch [70/100]  Batch [  10/25]  Loss: -5.1114  LR: 4.81e-05
+  Epoch [70/100]  Batch [  20/25]  Loss: -4.9889  LR: 4.81e-05
+
+------------------------------------------------------------
+  Epoch  70/100 complete  |  Avg Loss: -4.8273  |  LR: 4.53e-05
+------------------------------------------------------------
+
+  Epoch [71/100]  Batch [   0/25]  Loss: -4.6634  LR: 4.53e-05
+  Epoch [71/100]  Batch [  10/25]  Loss: -4.7898  LR: 4.53e-05
+  Epoch [71/100]  Batch [  20/25]  Loss: -4.6990  LR: 4.53e-05
+
+------------------------------------------------------------
+  Epoch  71/100 complete  |  Avg Loss: -4.8425  |  LR: 4.26e-05
+------------------------------------------------------------
+
+  Epoch [72/100]  Batch [   0/25]  Loss: -4.9148  LR: 4.26e-05
+  Epoch [72/100]  Batch [  10/25]  Loss: -5.0444  LR: 4.26e-05
+  Epoch [72/100]  Batch [  20/25]  Loss: -4.9962  LR: 4.26e-05
+
+------------------------------------------------------------
+  Epoch  72/100 complete  |  Avg Loss: -4.9875  |  LR: 3.99e-05
+------------------------------------------------------------
+
+  Epoch [73/100]  Batch [   0/25]  Loss: -4.8249  LR: 3.99e-05
+  Epoch [73/100]  Batch [  10/25]  Loss: -5.0805  LR: 3.99e-05
+  Epoch [73/100]  Batch [  20/25]  Loss: -5.0427  LR: 3.99e-05
+
+------------------------------------------------------------
+  Epoch  73/100 complete  |  Avg Loss: -5.0478  |  LR: 3.73e-05
+------------------------------------------------------------
+
+  Epoch [74/100]  Batch [   0/25]  Loss: -4.8240  LR: 3.73e-05
+  Epoch [74/100]  Batch [  10/25]  Loss: -5.2635  LR: 3.73e-05
+  Epoch [74/100]  Batch [  20/25]  Loss: -5.2877  LR: 3.73e-05
+
+------------------------------------------------------------
+  Epoch  74/100 complete  |  Avg Loss: -5.1079  |  LR: 3.47e-05
+------------------------------------------------------------
+
+  Epoch [75/100]  Batch [   0/25]  Loss: -5.2935  LR: 3.47e-05
+  Epoch [75/100]  Batch [  10/25]  Loss: -5.0634  LR: 3.47e-05
+  Epoch [75/100]  Batch [  20/25]  Loss: -5.1340  LR: 3.47e-05
+
+------------------------------------------------------------
+  Epoch  75/100 complete  |  Avg Loss: -5.1209  |  LR: 3.23e-05
+------------------------------------------------------------
+
+  Epoch [76/100]  Batch [   0/25]  Loss: -5.1636  LR: 3.23e-05
+  Epoch [76/100]  Batch [  10/25]  Loss: -4.9536  LR: 3.23e-05
+  Epoch [76/100]  Batch [  20/25]  Loss: -5.3466  LR: 3.23e-05
+
+------------------------------------------------------------
+  Epoch  76/100 complete  |  Avg Loss: -5.2322  |  LR: 2.99e-05
+------------------------------------------------------------
+
+  Epoch [77/100]  Batch [   0/25]  Loss: -4.9921  LR: 2.99e-05
+  Epoch [77/100]  Batch [  10/25]  Loss: -5.0030  LR: 2.99e-05
+  Epoch [77/100]  Batch [  20/25]  Loss: -4.9956  LR: 2.99e-05
+
+------------------------------------------------------------
+  Epoch  77/100 complete  |  Avg Loss: -5.2675  |  LR: 2.76e-05
+------------------------------------------------------------
+
+  Epoch [78/100]  Batch [   0/25]  Loss: -5.2247  LR: 2.76e-05
+  Epoch [78/100]  Batch [  10/25]  Loss: -5.4385  LR: 2.76e-05
+  Epoch [78/100]  Batch [  20/25]  Loss: -5.2863  LR: 2.76e-05
+
+------------------------------------------------------------
+  Epoch  78/100 complete  |  Avg Loss: -5.3023  |  LR: 2.53e-05
+------------------------------------------------------------
+
+  Epoch [79/100]  Batch [   0/25]  Loss: -4.8924  LR: 2.53e-05
+  Epoch [79/100]  Batch [  10/25]  Loss: -5.4274  LR: 2.53e-05
+  Epoch [79/100]  Batch [  20/25]  Loss: -5.0784  LR: 2.53e-05
+
+------------------------------------------------------------
+  Epoch  79/100 complete  |  Avg Loss: -5.2916  |  LR: 2.32e-05
+------------------------------------------------------------
+
+  Epoch [80/100]  Batch [   0/25]  Loss: -5.1719  LR: 2.32e-05
+  Epoch [80/100]  Batch [  10/25]  Loss: -5.6442  LR: 2.32e-05
+  Epoch [80/100]  Batch [  20/25]  Loss: -5.2663  LR: 2.32e-05
+
+------------------------------------------------------------
+  Epoch  80/100 complete  |  Avg Loss: -5.3764  |  LR: 2.11e-05
+------------------------------------------------------------
+
+  Epoch [81/100]  Batch [   0/25]  Loss: -5.1355  LR: 2.11e-05
+  Epoch [81/100]  Batch [  10/25]  Loss: -5.2893  LR: 2.11e-05
+  Epoch [81/100]  Batch [  20/25]  Loss: -5.5286  LR: 2.11e-05
+
+------------------------------------------------------------
+  Epoch  81/100 complete  |  Avg Loss: -5.4131  |  LR: 1.91e-05
+------------------------------------------------------------
+
+  Epoch [82/100]  Batch [   0/25]  Loss: -5.5784  LR: 1.91e-05
+  Epoch [82/100]  Batch [  10/25]  Loss: -5.2104  LR: 1.91e-05
+  Epoch [82/100]  Batch [  20/25]  Loss: -5.4617  LR: 1.91e-05
+
+------------------------------------------------------------
+  Epoch  82/100 complete  |  Avg Loss: -5.5017  |  LR: 1.72e-05
+------------------------------------------------------------
+
+  Epoch [83/100]  Batch [   0/25]  Loss: -5.4942  LR: 1.72e-05
+  Epoch [83/100]  Batch [  10/25]  Loss: -5.6022  LR: 1.72e-05
+  Epoch [83/100]  Batch [  20/25]  Loss: -5.2503  LR: 1.72e-05
+
+------------------------------------------------------------
+  Epoch  83/100 complete  |  Avg Loss: -5.5117  |  LR: 1.54e-05
+------------------------------------------------------------
+
+  Epoch [84/100]  Batch [   0/25]  Loss: -5.4546  LR: 1.54e-05
+  Epoch [84/100]  Batch [  10/25]  Loss: -5.5668  LR: 1.54e-05
+  Epoch [84/100]  Batch [  20/25]  Loss: -5.4351  LR: 1.54e-05
+
+------------------------------------------------------------
+  Epoch  84/100 complete  |  Avg Loss: -5.5595  |  LR: 1.37e-05
+------------------------------------------------------------
+
+  Epoch [85/100]  Batch [   0/25]  Loss: -5.9271  LR: 1.37e-05
+  Epoch [85/100]  Batch [  10/25]  Loss: -5.1813  LR: 1.37e-05
+  Epoch [85/100]  Batch [  20/25]  Loss: -5.6755  LR: 1.37e-05
+
+------------------------------------------------------------
+  Epoch  85/100 complete  |  Avg Loss: -5.5822  |  LR: 1.21e-05
+------------------------------------------------------------
+
+  Epoch [86/100]  Batch [   0/25]  Loss: -5.3430  LR: 1.21e-05
+  Epoch [86/100]  Batch [  10/25]  Loss: -5.2058  LR: 1.21e-05
+  Epoch [86/100]  Batch [  20/25]  Loss: -5.7173  LR: 1.21e-05
+
+------------------------------------------------------------
+  Epoch  86/100 complete  |  Avg Loss: -5.6004  |  LR: 1.05e-05
+------------------------------------------------------------
+
+  Epoch [87/100]  Batch [   0/25]  Loss: -5.4162  LR: 1.05e-05
+  Epoch [87/100]  Batch [  10/25]  Loss: -5.5690  LR: 1.05e-05
+  Epoch [87/100]  Batch [  20/25]  Loss: -5.4367  LR: 1.05e-05
+
+------------------------------------------------------------
+  Epoch  87/100 complete  |  Avg Loss: -5.6226  |  LR: 9.10e-06
+------------------------------------------------------------
+
+  Epoch [88/100]  Batch [   0/25]  Loss: -5.5717  LR: 9.10e-06
+  Epoch [88/100]  Batch [  10/25]  Loss: -5.6233  LR: 9.10e-06
+  Epoch [88/100]  Batch [  20/25]  Loss: -5.2738  LR: 9.10e-06
+
+------------------------------------------------------------
+  Epoch  88/100 complete  |  Avg Loss: -5.5983  |  LR: 7.77e-06
+------------------------------------------------------------
+
+  Epoch [89/100]  Batch [   0/25]  Loss: -5.2319  LR: 7.77e-06
+  Epoch [89/100]  Batch [  10/25]  Loss: -5.8223  LR: 7.77e-06
+  Epoch [89/100]  Batch [  20/25]  Loss: -5.7883  LR: 7.77e-06
+
+------------------------------------------------------------
+  Epoch  89/100 complete  |  Avg Loss: -5.6806  |  LR: 6.54e-06
+------------------------------------------------------------
+
+  Epoch [90/100]  Batch [   0/25]  Loss: -5.7464  LR: 6.54e-06
+  Epoch [90/100]  Batch [  10/25]  Loss: -5.5302  LR: 6.54e-06
+  Epoch [90/100]  Batch [  20/25]  Loss: -5.8658  LR: 6.54e-06
+
+------------------------------------------------------------
+  Epoch  90/100 complete  |  Avg Loss: -5.6837  |  LR: 5.42e-06
+------------------------------------------------------------
+
+  Epoch [91/100]  Batch [   0/25]  Loss: -5.6730  LR: 5.42e-06
+  Epoch [91/100]  Batch [  10/25]  Loss: -5.3481  LR: 5.42e-06
+  Epoch [91/100]  Batch [  20/25]  Loss: -5.3489  LR: 5.42e-06
+
+------------------------------------------------------------
+  Epoch  91/100 complete  |  Avg Loss: -5.6863  |  LR: 4.40e-06
+------------------------------------------------------------
+
+  Epoch [92/100]  Batch [   0/25]  Loss: -5.5250  LR: 4.40e-06
+  Epoch [92/100]  Batch [  10/25]  Loss: -5.7128  LR: 4.40e-06
+  Epoch [92/100]  Batch [  20/25]  Loss: -5.2079  LR: 4.40e-06
+
+------------------------------------------------------------
+  Epoch  92/100 complete  |  Avg Loss: -5.7171  |  LR: 3.48e-06
+------------------------------------------------------------
+
+  Epoch [93/100]  Batch [   0/25]  Loss: -5.5783  LR: 3.48e-06
+  Epoch [93/100]  Batch [  10/25]  Loss: -5.5389  LR: 3.48e-06
+  Epoch [93/100]  Batch [  20/25]  Loss: -5.9785  LR: 3.48e-06
+
+------------------------------------------------------------
+  Epoch  93/100 complete  |  Avg Loss: -5.7359  |  LR: 2.67e-06
+------------------------------------------------------------
+
+  Epoch [94/100]  Batch [   0/25]  Loss: -5.8374  LR: 2.67e-06
+  Epoch [94/100]  Batch [  10/25]  Loss: -5.9604  LR: 2.67e-06
+  Epoch [94/100]  Batch [  20/25]  Loss: -5.4566  LR: 2.67e-06
+
+------------------------------------------------------------
+  Epoch  94/100 complete  |  Avg Loss: -5.6877  |  LR: 1.96e-06
+------------------------------------------------------------
+
+  Epoch [95/100]  Batch [   0/25]  Loss: -5.7770  LR: 1.96e-06
+  Epoch [95/100]  Batch [  10/25]  Loss: -5.9433  LR: 1.96e-06
+  Epoch [95/100]  Batch [  20/25]  Loss: -5.6444  LR: 1.96e-06
+
+------------------------------------------------------------
+  Epoch  95/100 complete  |  Avg Loss: -5.7852  |  LR: 1.36e-06
+------------------------------------------------------------
+
+  Epoch [96/100]  Batch [   0/25]  Loss: -5.5594  LR: 1.36e-06
+  Epoch [96/100]  Batch [  10/25]  Loss: -5.6437  LR: 1.36e-06
+  Epoch [96/100]  Batch [  20/25]  Loss: -5.5119  LR: 1.36e-06
+
+------------------------------------------------------------
+  Epoch  96/100 complete  |  Avg Loss: -5.6963  |  LR: 8.74e-07
+------------------------------------------------------------
+
+  Epoch [97/100]  Batch [   0/25]  Loss: -5.5728  LR: 8.74e-07
+  Epoch [97/100]  Batch [  10/25]  Loss: -5.2177  LR: 8.74e-07
+  Epoch [97/100]  Batch [  20/25]  Loss: -5.5632  LR: 8.74e-07
+
+------------------------------------------------------------
+  Epoch  97/100 complete  |  Avg Loss: -5.7144  |  LR: 4.92e-07
+------------------------------------------------------------
+
+  Epoch [98/100]  Batch [   0/25]  Loss: -5.6822  LR: 4.92e-07
+  Epoch [98/100]  Batch [  10/25]  Loss: -5.7569  LR: 4.92e-07
+  Epoch [98/100]  Batch [  20/25]  Loss: -5.3057  LR: 4.92e-07
+
+------------------------------------------------------------
+  Epoch  98/100 complete  |  Avg Loss: -5.6693  |  LR: 2.19e-07
+------------------------------------------------------------
+
+  Epoch [99/100]  Batch [   0/25]  Loss: -5.8464  LR: 2.19e-07
+  Epoch [99/100]  Batch [  10/25]  Loss: -5.6238  LR: 2.19e-07
+  Epoch [99/100]  Batch [  20/25]  Loss: -5.8808  LR: 2.19e-07
+
+------------------------------------------------------------
+  Epoch  99/100 complete  |  Avg Loss: -5.7078  |  LR: 5.47e-08
+------------------------------------------------------------
+
+  Epoch [100/100]  Batch [   0/25]  Loss: -6.0125  LR: 5.47e-08
+  Epoch [100/100]  Batch [  10/25]  Loss: -5.6910  LR: 5.47e-08
+  Epoch [100/100]  Batch [  20/25]  Loss: -5.8774  LR: 5.47e-08
+
+------------------------------------------------------------
+  Epoch 100/100 complete  |  Avg Loss: -5.7833  |  LR: 0.00e+00
+------------------------------------------------------------
+
+cn11-dgx:78656:80799 [1] NCCL INFO [Service thread] Connection closed by localRank 1
+cn11-dgx:78655:80800 [0] NCCL INFO [Service thread] Connection closed by localRank 0
+cn11-dgx:78656:223121 [1] NCCL INFO comm 0x560b36eacbf0 rank 1 nranks 2 cudaDev 1 busId 4e000 - Abort COMPLETE
+cn11-dgx:78655:223123 [0] NCCL INFO comm 0x55cedabdcd80 rank 0 nranks 2 cudaDev 0 busId 7000 - Abort COMPLETE
+========================================================
+Training finished
+END TIME  : Monday 15 June 2026 05:59:58 AM IST
+EXIT CODE : 0
+========================================================

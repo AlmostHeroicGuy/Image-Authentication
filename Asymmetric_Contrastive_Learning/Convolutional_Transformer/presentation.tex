@@ -1,0 +1,827 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codeblue}{RGB}{30,75,135}
+\definecolor{codegreen}{RGB}{0,105,70}
+\definecolor{codegray}{RGB}{95,95,95}
+\lstset{
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{codeblue}\bfseries,
+  commentstyle=\color{codegreen},
+  stringstyle=\color{codegray},
+  showstringspaces=false,
+  breaklines=true,
+  frame=single,
+  columns=fullflexible
+}
+
+\newcommand{\shape}[1]{\texttt{#1}}
+\newcommand{\file}[1]{\texttt{#1}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{Hybrid Convolutional Transformer\\for Face-Image Forensic Hashing}
+\subtitle{Architecture and top-level code walkthrough}
+\author{Convolutional\_Transformer repository}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Scope of this walkthrough}
+  \begin{itemize}
+    \item Covers every top-level source file in the repository root.
+    \item Python: \file{CNN.py}, \file{tokenizer.py}, \file{transformer.py},
+          \file{augmentations.py}, \file{loss.py}, \file{train.py}, \file{eval.py}.
+    \item HPC launch scripts: \file{submit\_CvT\_train.sh}, \file{submit\_4gpu.sh}.
+    \item Sub-folders are intentionally excluded.
+    \item Focus: exact tensor shapes, kernel sizes, layer counts, optimization
+          behavior, distributed training, evaluation, and implementation caveats.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Problem formulation}
+  \begin{block}{Goal}
+    Learn a semantic forensic hash that is stable under benign global image
+    degradation but changes when a localized manipulation is introduced.
+  \end{block}
+  \begin{columns}[T]
+    \column{0.32\textwidth}
+      \textbf{Anchor}\\
+      Pristine face image
+    \column{0.32\textwidth}
+      \textbf{Positive view}\\
+      Global benign blur, noise, and brightness shift
+    \column{0.32\textwidth}
+      \textbf{Hard negative}\\
+      Localized heavily blurred rectangular region
+  \end{columns}
+  \vspace{0.7em}
+  Every view is encoded into a normalized 2,048-dimensional vector. Training
+  pulls the anchor toward the benign view and pushes it away from the forged view
+  and unrelated images.
+\end{frame}
+
+\begin{frame}{End-to-end architecture}
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{1pt}
+  \begin{tabular}{>{\centering\arraybackslash}p{0.13\textwidth}
+                  >{\centering\arraybackslash}p{0.04\textwidth}
+                  >{\centering\arraybackslash}p{0.16\textwidth}
+                  >{\centering\arraybackslash}p{0.04\textwidth}
+                  >{\centering\arraybackslash}p{0.16\textwidth}
+                  >{\centering\arraybackslash}p{0.04\textwidth}
+                  >{\centering\arraybackslash}p{0.15\textwidth}
+                  >{\centering\arraybackslash}p{0.04\textwidth}
+                  >{\centering\arraybackslash}p{0.14\textwidth}}
+    RGB image & $\rightarrow$ & Truncated ResNet-50 & $\rightarrow$ &
+    Spatial tokenizer & $\rightarrow$ & 6 Transformer blocks & $\rightarrow$ &
+    Semantic projector\\[0.5em]
+    \shape{[B,3,512,512]} && \shape{[B,1024,32,32]} &&
+    \shape{[B,1025,768]} && \shape{[B,1025,768]} &&
+    \shape{[B,2048]}
+  \end{tabular}
+  \vspace{1em}
+  \begin{itemize}
+    \item The CNN preserves local forensic texture information on a $32\times32$ grid.
+    \item The tokenizer turns each grid cell into one token and prepends a learnable
+          classification token.
+    \item Self-attention allows every spatial location to interact with every other location.
+    \item The final classification token becomes the compact semantic hash.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Parameter budget}
+  \centering
+  \begin{tabular}{lr}
+    \toprule
+    Module & Trainable parameters\\
+    \midrule
+    Truncated ResNet-50 backbone & 8,543,296\\
+    Spatial tokenizer & 1,575,168\\
+    Six transformer blocks & 42,527,232\\
+    Semantic projector & 1,579,008\\
+    \midrule
+    \textbf{Total} & \textbf{54,224,704}\\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.8em}
+  \begin{itemize}
+    \item One transformer block has 7,087,872 trainable parameters.
+    \item The six-block transformer head contributes about 78.4\% of the total.
+    \item Augmentation kernels are registered buffers, not trainable parameters.
+  \end{itemize}
+\end{frame}
+
+\section{CNN Backbone}
+
+\begin{frame}{\file{CNN.py}: truncated ResNet-50}
+  \begin{itemize}
+    \item Implements ResNet bottleneck blocks from scratch.
+    \item Uses the standard ResNet-50 stage depths $[3,4,6,3]$, but omits the
+          last stage: only $[3,4,6]$ are constructed.
+    \item Also omits adaptive average pooling and the classification layer.
+    \item Input is resized to $512\times512$ before it reaches the backbone.
+    \item Output is a spatial map, not a class score:
+          \shape{[B,1024,32,32]}.
+  \end{itemize}
+  \begin{block}{Why truncate?}
+    Keeping the $32\times32$ map supplies 1,024 spatial tokens. A complete
+    ResNet-50 would downsample further and discard useful local anomaly detail.
+  \end{block}
+\end{frame}
+
+\begin{frame}{CNN stem: exact downsampling}
+  \centering
+  \begin{tabular}{lllll}
+    \toprule
+    Operation & Kernel & Stride & Padding & Output shape\\
+    \midrule
+    Input & -- & -- & -- & \shape{[B,3,512,512]}\\
+    Conv2d & $7\times7$ & 2 & 3 & \shape{[B,64,256,256]}\\
+    BatchNorm2d + ReLU & -- & -- & -- & \shape{[B,64,256,256]}\\
+    MaxPool2d & $3\times3$ & 2 & 1 & \shape{[B,64,128,128]}\\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.8em}
+  For convolution or pooling, the spatial output is
+  \[
+    \left\lfloor\frac{H + 2P - K}{S}\right\rfloor + 1.
+  \]
+  All convolutions use \code{bias=False} when immediately followed by batch normalization.
+\end{frame}
+
+\begin{frame}{Residual bottleneck block}
+  Each \code{Bottleneck} applies:
+  \[
+    x \rightarrow
+    \underbrace{\mathrm{Conv}_{1\times1}}_{\text{reduce}}
+    \rightarrow \mathrm{BN}\rightarrow\mathrm{ReLU}
+    \rightarrow
+    \underbrace{\mathrm{Conv}_{3\times3}}_{\text{spatial}}
+    \rightarrow \mathrm{BN}\rightarrow\mathrm{ReLU}
+    \rightarrow
+    \underbrace{\mathrm{Conv}_{1\times1}}_{\text{expand by 4}}
+    \rightarrow \mathrm{BN}.
+  \]
+  Then:
+  \[
+    y = \mathrm{ReLU}(F(x) + D(x)).
+  \]
+  \begin{itemize}
+    \item Expansion factor: 4.
+    \item The $3\times3$ convolution uses padding 1 and carries the stage stride.
+    \item $D(x)$ is either the identity or a $1\times1$ projection plus BatchNorm.
+    \item ReLU is configured with \code{inplace=False}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{CNN stages: dimensions and block counts}
+  \centering
+  \scriptsize
+  \begin{tabular}{lllllll}
+    \toprule
+    Stage & Blocks & Internal channels & Expanded output & First-block stride & Grid & Parameters\\
+    \midrule
+    Stem & -- & -- & 64 & 2 then pool 2 & $128\times128$ & 9,536\\
+    Layer 1 & 3 & 64 & 256 & 1 & $128\times128$ & 215,808\\
+    Layer 2 & 4 & 128 & 512 & 2 & $64\times64$ & 1,219,584\\
+    Layer 3 & 6 & 256 & 1,024 & 2 & $32\times32$ & 7,098,368\\
+    \midrule
+    Output & -- & -- & 1,024 & -- & $32\times32$ & 8,543,296 total\\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.7em}
+  A projection shortcut is created whenever stride changes or channel counts do
+  not match the expanded output. CNN convolutions use Kaiming-normal
+  initialization; BatchNorm scales start at 1 and biases at 0.
+\end{frame}
+
+\section{Tokenizer}
+
+\begin{frame}{\file{tokenizer.py}: spatial-to-sequence bridge}
+  The tokenizer preserves all $32\times32=1,024$ CNN grid positions:
+  \[
+    \shape{[B,1024,32,32]}
+    \rightarrow
+    \shape{[B,1024,1024]}
+    \rightarrow
+    \shape{[B,1024,768]}.
+  \]
+  \begin{enumerate}
+    \item \code{view} flattens the spatial axes.
+    \item \code{permute(0,2,1)} changes channel-first CNN layout into token-first layout.
+    \item A learned linear projection maps each 1,024-channel CNN vector to 768 dimensions.
+    \item A learnable \shape{[1,1,768]} classification token is prepended.
+    \item A learnable \shape{[1,1025,768]} absolute positional embedding is added.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Tokenizer parameters and initialization}
+  \centering
+  \begin{tabular}{lll}
+    \toprule
+    Object & Shape & Parameters\\
+    \midrule
+    Patch projection weight & \shape{[768,1024]} & 786,432\\
+    Patch projection bias & \shape{[768]} & 768\\
+    Classification token & \shape{[1,1,768]} & 768\\
+    Positional embedding & \shape{[1,1025,768]} & 787,200\\
+    \midrule
+    Total & -- & 1,575,168\\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.8em}
+  \begin{itemize}
+    \item Classification token and positional embedding: truncated normal, standard deviation 0.02.
+    \item Projection weight: Xavier-uniform.
+    \item Projection bias: zeros.
+    \item There is no patchifying convolution: tokens correspond directly to CNN grid cells.
+  \end{itemize}
+\end{frame}
+
+\section{Transformer}
+
+\begin{frame}{\file{transformer.py}: six pre-norm blocks}
+  The model creates six identical \code{CustomTransformerBlock} instances:
+  \[
+    Z_{\ell}' = Z_{\ell} + \mathrm{MHSA}(\mathrm{LN}(Z_{\ell})),
+  \]
+  \[
+    Z_{\ell+1} = Z_{\ell}' + \mathrm{MLP}(\mathrm{LN}(Z_{\ell}')).
+  \]
+  \begin{itemize}
+    \item Hidden dimension: 768.
+    \item Sequence length: 1,025.
+    \item Attention heads: 12.
+    \item Per-head dimension: $768/12=64$.
+    \item MLP ratio: 4, giving a 3,072-dimensional hidden layer.
+    \item Both sublayers have residual additions.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Multi-head self-attention in detail}
+  \begin{enumerate}
+    \item One fused linear layer projects \shape{[B,1025,768]} to
+          \shape{[B,1025,2304]}.
+    \item \code{chunk(3, dim=-1)} produces query, key, and value tensors.
+    \item Each tensor is reshaped to \shape{[B,12,1025,64]}.
+    \item PyTorch \code{scaled\_dot\_product\_attention} computes full,
+          bidirectional self-attention with no mask and no dropout.
+    \item Heads are concatenated back to \shape{[B,1025,768]}.
+    \item A final linear layer mixes the concatenated heads.
+  \end{enumerate}
+  The mathematical operation per head is:
+  \[
+    \mathrm{Attention}(Q,K,V)=
+    \mathrm{softmax}\left(\frac{QK^\top}{\sqrt{64}}\right)V.
+  \]
+\end{frame}
+
+\begin{frame}{Attention implementation details}
+  \begin{itemize}
+    \item \code{attn\_mask=None}: all tokens can attend to all tokens.
+    \item \code{is\_causal=False}: this is an encoder, not an autoregressive decoder.
+    \item \code{dropout\_p=0.0}: attention is deterministic even in training.
+    \item \code{scale=None}: PyTorch uses the default $1/\sqrt{d_k}$ factor.
+    \item On a compatible CUDA stack and GPU, PyTorch may dispatch the SDPA call
+          to an optimized Flash Attention backend.
+    \item The code requests SDPA; the actual selected backend depends on runtime
+          hardware, data type, and PyTorch configuration.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{MLP and optional checkpointing}
+  The second transformer sublayer is:
+  \[
+    \shape{768}
+    \xrightarrow{\mathrm{Linear}}
+    \shape{3072}
+    \xrightarrow{\mathrm{GELU}}
+    \shape{3072}
+    \xrightarrow{\mathrm{Linear}}
+    \shape{768}.
+  \]
+  \begin{itemize}
+    \item Each block exposes \code{use\_checkpoint=False} by default.
+    \item Training can set it to true for every block via
+          \code{--enable-checkpointing}.
+    \item During training, \code{checkpoint(..., use\_reentrant=False)}
+          recomputes block activations during backward to reduce activation memory.
+    \item The trade-off is extra computation during backpropagation.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{One transformer block: parameter accounting}
+  \centering
+  \scriptsize
+  \begin{tabular}{lr}
+    \toprule
+    Component & Parameters\\
+    \midrule
+    Two LayerNorm layers & 3,072\\
+    Fused QKV projection: $768\rightarrow2304$ & 1,771,776\\
+    Attention output projection: $768\rightarrow768$ & 590,592\\
+    MLP first linear: $768\rightarrow3072$ & 2,362,368\\
+    MLP second linear: $3072\rightarrow768$ & 2,360,064\\
+    \midrule
+    One block & 7,087,872\\
+    Six blocks & 42,527,232\\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Semantic projector}
+  After the sixth transformer block, only token index 0 is retained:
+  \[
+    \shape{[B,1025,768]}
+    \xrightarrow{\text{select CLS}}
+    \shape{[B,768]}
+    \xrightarrow{\mathrm{Linear}}
+    \shape{[B,2048]}
+    \xrightarrow{\mathrm{GELU + LayerNorm}}
+    \shape{[B,2048]}.
+  \]
+  \begin{itemize}
+    \item Linear layer: $768\rightarrow2,048$.
+    \item Projector parameters: 1,579,008.
+    \item The loss later L2-normalizes hashes onto the unit hypersphere.
+    \item The model itself returns the unnormalized 2,048-D vector.
+  \end{itemize}
+\end{frame}
+
+\section{Augmentations}
+
+\begin{frame}{\file{augmentations.py}: fixed depthwise filter bank}
+  Raw filters are non-trainable registered buffers. Each RGB channel is filtered
+  independently with \code{groups=3}.
+  \vspace{0.5em}
+  \centering
+  \begin{tabular}{llll}
+    \toprule
+    Filter & Kernel & Default parameters & Purpose\\
+    \midrule
+    \code{RawGaussianFilter} & $K\times K$ & $K=7,\sigma=1.5$ & Gaussian blur\\
+    \code{RawBoxFilter} & $K\times K$ & $K=5$ & Uniform averaging\\
+    \code{RawMotionFilter} & $K\times K$ & $K=7$ & Diagonal camera shake\\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.6em}
+  For odd $K$, padding is $K//2$, preserving image height and width. Each
+  kernel is reshaped to \shape{[1,1,K,K]} and repeated to
+  \shape{[3,1,K,K]}.
+\end{frame}
+
+\begin{frame}{Gaussian, box, and motion kernels}
+  \begin{block}{Gaussian kernel}
+    Coordinates run from $-P$ to $P$, where $P=K//2$. The 1-D Gaussian is
+    $g(x)=\exp(-x^2/(2\sigma^2))$. The 2-D kernel is the normalized outer
+    product $gg^\top$.
+  \end{block}
+  \begin{block}{Box kernel}
+    Every one of the $K^2$ entries is $1/K^2$, so brightness is preserved.
+  \end{block}
+  \begin{block}{Motion kernel}
+    A normalized $K\times K$ identity matrix places $1/K$ along the diagonal,
+    producing an anisotropic diagonal smear.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Global benign augmentation}
+  For an entire batch, \code{GlobalBenignAugmentation} randomly selects one blur:
+  \begin{itemize}
+    \item Gaussian: $5\times5$, $\sigma=1.0$.
+    \item Gaussian: $7\times7$, $\sigma=2.0$.
+    \item Box: $5\times5$.
+    \item Motion: $7\times7$.
+  \end{itemize}
+  It then adds pixelwise Gaussian noise with standard deviation sampled uniformly
+  from $[0.01,0.05]$, multiplies by a brightness scalar sampled uniformly from
+  $[0.9,1.1]$, and clamps pixels to $[0,1]$.
+  \begin{block}{Implementation detail}
+    The bank is an \code{nn.ModuleList}; therefore \code{.to(device)} moves every
+    registered filter buffer to the GPU.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Localized malicious forgery}
+  Training constructs \code{LocalMaliciousForgery(tamper\_size=(96,192))}.
+  \begin{enumerate}
+    \item Pick one heavy Gaussian blur for the batch: $31\times31$ kernel with
+          $\sigma\in\{5,6,7,8\}$.
+    \item For each image, independently sample rectangle height and width from
+          $[96,192]$ pixels.
+    \item Sample a rectangle origin and set the binary mask region to 1.
+    \item Blur the full image, then use the mask to blend blurred pixels only
+          into the selected region.
+  \end{enumerate}
+  The class default is \code{(64,128)}, but \file{train.py} overrides it.
+\end{frame}
+
+\begin{frame}{Soft mask for forgery blending}
+  A binary rectangle would create an obvious hard edge. The code feathers that
+  edge by convolving the one-channel mask with a Gaussian:
+  \[
+    M_{\mathrm{soft}} = M_{\mathrm{hard}} * G_{31\times31,\sigma=7}.
+  \]
+  The final image is:
+  \[
+    x_{\mathrm{tampered}} =
+    M_{\mathrm{soft}}\odot x_{\mathrm{blurred}} +
+    (1-M_{\mathrm{soft}})\odot x.
+  \]
+  \begin{itemize}
+    \item Soft-mask kernel: $31\times31$, $\sigma=7$, padding 15.
+    \item One randomized box is made per image.
+    \item Heavy-blur choice is shared by the batch.
+    \item CUDA scalar indices are converted to Python integers with \code{.item()}.
+  \end{itemize}
+\end{frame}
+
+\section{Loss}
+
+\begin{frame}{\file{loss.py}: asymmetric contrastive objective}
+  Let $h_o$, $h_g$, and $h_t$ denote pristine, globally augmented, and locally
+  tampered hashes. First normalize:
+  \[
+    z = \frac{h}{\lVert h\rVert_2}.
+  \]
+  With temperature $\tau=0.05$ and hard-negative weight $\alpha=20$:
+  \[
+    s_i^+ = \frac{z_{o,i}^\top z_{g,i}}{\tau},
+    \qquad
+    s_i^{\mathrm{hard}} = \frac{z_{o,i}^\top z_{t,i}}{\tau}.
+  \]
+  Anchor direction is asymmetric: pristine images are anchors, benign images
+  are positives, and tampered images are weighted hard negatives.
+\end{frame}
+
+\begin{frame}{Implemented denominator}
+  For each anchor, compare against all gathered benign views and remove its
+  matched positive from that set. The implemented loss is:
+  \[
+    \mathcal{L}_i =
+    -\left[
+      s_i^+ -
+      \log\left(
+        \sum_{j\ne i}\exp(s_{ij}) +
+        \alpha\exp(s_i^{\mathrm{hard}})
+      \right)
+    \right].
+  \]
+  \begin{itemize}
+    \item $s_{ij}=z_{o,i}^\top z_{g,j}/\tau$.
+    \item Positive entries are replaced with $-\infty$ before exponentiation.
+    \item The batch loss is the mean of per-sample losses.
+    \item Similarity computation is cosine similarity because vectors are normalized.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Distributed negative gathering}
+  In multi-GPU mode:
+  \begin{itemize}
+    \item Each rank gathers benign-view embeddings from all ranks.
+    \item Local batch size $B$ becomes global context size
+          $N_{\mathrm{global}}=B\times\mathrm{WORLD\_SIZE}$.
+    \item \code{dist.all\_gather} does not preserve autograd for gathered tensors.
+    \item The code replaces the gathered local shard with its original tensor,
+          preserving gradients for that local shard.
+    \item The local positive columns begin at \code{rank * B}; these positions
+          are masked out of the denominator.
+  \end{itemize}
+  This expands the negative pool without sending gradients through remote shards.
+\end{frame}
+
+\begin{frame}{Loss formulation: presentation caveat}
+  \begin{alertblock}{Verify the intended objective}
+    The implementation excludes the positive term from the denominator. Standard
+    InfoNCE / NT-Xent commonly includes the positive alongside negatives in the
+    denominator. Excluding it can produce negative loss values when the positive
+    similarity dominates.
+  \end{alertblock}
+  \begin{itemize}
+    \item The slides describe the repository exactly as implemented.
+    \item The code comments explicitly state that exclusion is intentional.
+    \item Before comparing results against standard NT-Xent baselines, confirm
+          whether the desired objective is standard InfoNCE or this custom ratio.
+  \end{itemize}
+\end{frame}
+
+\section{Training}
+
+\begin{frame}{\file{train.py}: dataset and data loading}
+  \code{PristineFacesDataset}:
+  \begin{itemize}
+    \item Recursively discovers \code{.jpg}, \code{.jpeg}, and \code{.png} files.
+    \item Converts each image to RGB.
+    \item Resizes every image to $512\times512$.
+    \item Converts pixels to a float tensor in $[0,1]$.
+    \item Leaves augmentation to the GPU-side training loop.
+  \end{itemize}
+  \code{DataLoader}:
+  \begin{itemize}
+    \item Uses pinned memory, \code{drop\_last=True}, and prefetch factor 4.
+    \item Persistent workers are enabled when worker count is positive.
+    \item Uses \code{DistributedSampler} under DDP; otherwise uses shuffle.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Training batch construction}
+  For each pristine mini-batch $x$:
+  \[
+    x_{\mathrm{global}} = A_{\mathrm{benign}}(x), \qquad
+    x_{\mathrm{tampered}} = A_{\mathrm{local}}(x).
+  \]
+  Augmentations run inside \code{torch.no\_grad()}, then:
+  \[
+    x_{\mathrm{all}} =
+    \mathrm{cat}(x,x_{\mathrm{global}},x_{\mathrm{tampered}})
+    \in \mathbb{R}^{3B\times3\times512\times512}.
+  \]
+  A single model call returns \shape{[3B,2048]}, then \code{chunk(3)} recovers
+  anchor, positive, and hard-negative hashes. This avoids three separate forward calls.
+\end{frame}
+
+\begin{frame}{Optimization configuration}
+  \centering
+  \begin{tabular}{ll}
+    \toprule
+    Setting & Default\\
+    \midrule
+    Optimizer & AdamW\\
+    Base learning rate & $10^{-4}$\\
+    Distributed learning rate & base LR $\times$ world size\\
+    Weight decay & $10^{-4}$\\
+    Epochs & 100 from Python CLI\\
+    Warmup & 10 epochs\\
+    Gradient clipping & max norm 1.0\\
+    Temperature $\tau$ & 0.05\\
+    Hard-negative weight $\alpha$ & 20.0\\
+    Checkpoint interval & 10 epochs\\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Learning-rate schedule}
+  \code{build\_lr\_lambda} applies linear warmup followed by cosine decay:
+  \[
+    \lambda(e)=
+    \begin{cases}
+      \dfrac{e+1}{E_{\mathrm{warmup}}}, & e < E_{\mathrm{warmup}},\\[0.8em]
+      \dfrac{1}{2}\left(1+\cos\left(\pi
+      \dfrac{e-E_{\mathrm{warmup}}}{E_{\mathrm{total}}-E_{\mathrm{warmup}}}
+      \right)\right), & \text{otherwise.}
+    \end{cases}
+  \]
+  \begin{itemize}
+    \item Scheduler step occurs after each epoch.
+    \item Learning rate is scaled linearly by the number of processes.
+    \item A denominator guard of \code{max(1, ...)} handles edge cases.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{CUDA, AMP, and DDP setup}
+  \begin{itemize}
+    \item Training requires CUDA; there is no CPU training fallback.
+    \item If \code{LOCAL\_RANK}, \code{RANK}, and \code{WORLD\_SIZE} exist,
+          NCCL is initialized. Partial distributed environments are rejected.
+    \item Without those variables, the code uses one GPU for easier debugging.
+    \item TF32 matmul and cuDNN TF32 are enabled.
+    \item AMP selects bfloat16 when supported, otherwise float16.
+    \item GradScaler is enabled only for float16.
+    \item DDP uses one device per process and \code{find\_unused\_parameters=False}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Checkpointing and resume behavior}
+  After every epoch on rank 0, \file{train.py} saves:
+  \begin{itemize}
+    \item zero-based epoch index,
+    \item unwrapped model state,
+    \item optimizer state,
+    \item scheduler state,
+    \item averaged epoch loss.
+  \end{itemize}
+  The rolling path defaults to \file{latest\_checkpoint.pth}. Every tenth epoch,
+  a named file such as \file{hybrid\_encoder\_epoch\_010.pth} is also written.
+  If the rolling checkpoint already exists, training automatically resumes at
+  the following epoch.
+\end{frame}
+
+\section{Evaluation}
+
+\begin{frame}{\file{eval.py}: evaluation workflow}
+  \file{eval.py} is an executable evaluation script with fixed constants:
+  \begin{itemize}
+    \item checkpoint: \file{hybrid\_encoder\_epoch\_150.pth},
+    \item evaluation root: a hard-coded cluster path,
+    \item device: CUDA when available, otherwise CPU,
+    \item random seed: 42.
+  \end{itemize}
+  It loads the model, computes normalized hashes for \file{real},
+  \file{positive}, and \file{negative} directories, and stores results in a
+  directory named from the checkpoint epoch.
+\end{frame}
+
+\begin{frame}{Evaluation matrices and threshold search}
+  If $R$, $P$, and $N$ contain normalized embedding rows, the script computes:
+  \[
+    M_{RP}=RP^\top,\qquad
+    M_{RN}=RN^\top,\qquad
+    M_{PN}=PN^\top.
+  \]
+  \begin{itemize}
+    \item Diagonal entries are treated as matched image pairs.
+    \item Off-diagonal entries are treated as unmatched pairs.
+    \item Threshold candidates are sampled from $[-1,1]$ in increments of 0.001.
+    \item A score above threshold predicts a benign positive pair.
+    \item The threshold maximizing accuracy across matched RP and RN diagonals is saved.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Evaluation artifacts}
+  The output directory contains:
+  \begin{itemize}
+    \item three serialized embedding tensors,
+    \item \file{similarity\_matrices.npz},
+    \item three 300-DPI heatmaps,
+    \item \file{statistics.txt}.
+  \end{itemize}
+  The statistics report includes diagonal and off-diagonal mean, standard
+  deviation, minimum, maximum, five random examples, the diagonal--off-diagonal
+  gap, hard/easy real-negative cases, and best threshold accuracy.
+\end{frame}
+
+\section{HPC Scripts}
+
+\begin{frame}{\file{submit\_CvT\_train.sh}: eight-GPU job}
+  \centering
+  \begin{tabular}{ll}
+    \toprule
+    SLURM resource & Requested value\\
+    \midrule
+    Nodes / tasks & 1 / 1\\
+    GPUs & 8\\
+    CPUs & 64\\
+    Memory & 256 GB\\
+    Wall time & 48 hours\\
+    Partition / QoS & \code{dgx} / \code{dgx}\\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.7em}
+  The script supports micromamba, mamba, or conda activation, launches
+  \code{torchrun --nproc\_per\_node=8}, enables checkpointing, defaults to
+  48 images per GPU and 500 epochs, and forwards additional command-line arguments.
+\end{frame}
+
+\begin{frame}{\file{submit\_4gpu.sh}: four-GPU job}
+  \centering
+  \begin{tabular}{ll}
+    \toprule
+    SLURM resource & Requested value\\
+    \midrule
+    Nodes / tasks & 1 / 1\\
+    GPUs & 4\\
+    CPUs & 32\\
+    Memory & 128 GB\\
+    Wall time & 24 hours\\
+    Partition / QoS & \code{dgx} / \code{dgx}\\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.7em}
+  This variant requires mamba, launches four ranks, enables checkpointing, and
+  uses the same default 48 images per GPU and 500 epochs. Both scripts print
+  environment details, invoke \code{nvidia-smi}, capture the exit code, and
+  preserve strict shell error handling outside the training command.
+\end{frame}
+
+\begin{frame}{HPC environment variables}
+  Both submission scripts configure:
+  \begin{itemize}
+    \item \code{OMP\_NUM\_THREADS=8},
+    \item \code{NCCL\_DEBUG=INFO},
+    \item \code{NCCL\_IB\_DISABLE=0},
+    \item \code{NCCL\_P2P\_DISABLE=0},
+    \item \code{PYTHONUNBUFFERED=1}.
+  \end{itemize}
+  User-overridable values include conda environment, project directory, dataset
+  path, batch size, worker count, rolling checkpoint path, and epoch count.
+  \begin{block}{Effective batches}
+    Script defaults yield 192 images per step on four GPUs and 384 images per
+    step on eight GPUs, before the training loop triples each batch into views.
+  \end{block}
+\end{frame}
+
+\section{Code Notes}
+
+\begin{frame}{Implementation notes to verify}
+  \begin{itemize}
+    \item \file{train.py} defaults to dataset path \file{Faces/train}; both shell
+          scripts default to \file{Faces}. Recursive discovery may make either
+          valid, but the intended layout should be documented.
+    \item The Python CLI defaults to 100 epochs while both shell scripts override
+          this with 500 epochs.
+    \item \file{eval.py} accepts only top-level \file{*.jpg} files in each
+          evaluation category; it ignores JPEG variants, PNG files, and nested files.
+    \item \file{eval.py} has hard-coded checkpoint and dataset paths rather than CLI arguments.
+    \item The contrastive denominator differs from standard InfoNCE / NT-Xent;
+          confirm the intended research formulation.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Evaluation assumptions to verify}
+  \begin{itemize}
+    \item Similarity diagonals assume category folders use matching sorted filenames
+          and compatible lengths.
+    \item \code{compute\_stats} constructs a square identity mask from row count;
+          non-square similarity matrices would fail or be interpreted incorrectly.
+    \item Five random matched pairs require at least five samples.
+    \item Off-diagonal sampling requires at least two samples.
+    \item Empty image directories cause \code{torch.stack} to fail.
+    \item Evaluation uses \code{torch.load} without \code{weights\_only=True};
+          only trusted checkpoints should be loaded.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Training signal summary}
+  \centering
+  \begin{tabular}{p{0.28\textwidth}p{0.28\textwidth}p{0.28\textwidth}}
+    \toprule
+    Pristine anchor & Benign positive & Local hard negative\\
+    \midrule
+    Original resized RGB image &
+    Global blur + noise + brightness shift &
+    Feathered local heavy blur\\
+    Should remain close to positive &
+    Models acceptable acquisition changes &
+    Should move away from anchor\\
+    \bottomrule
+  \end{tabular}
+  \vspace{1em}
+  \begin{block}{Core idea}
+    CNN features preserve fine spatial evidence; transformer attention integrates
+    evidence globally; contrastive training makes the final hash robust to benign
+    degradation and sensitive to localized manipulation.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Complete tensor-shape trace}
+  \centering
+  \scriptsize
+  \begin{tabular}{lll}
+    \toprule
+    Stage & Operation & Shape\\
+    \midrule
+    Input & RGB batch & \shape{[B,3,512,512]}\\
+    CNN stem & $7\times7$ conv, $3\times3$ max pool & \shape{[B,64,128,128]}\\
+    CNN layer 1 & 3 bottlenecks & \shape{[B,256,128,128]}\\
+    CNN layer 2 & 4 bottlenecks & \shape{[B,512,64,64]}\\
+    CNN layer 3 & 6 bottlenecks & \shape{[B,1024,32,32]}\\
+    Tokenizer & flatten grid & \shape{[B,1024,1024]}\\
+    Tokenizer & project channels & \shape{[B,1024,768]}\\
+    Tokenizer & prepend CLS, add positions & \shape{[B,1025,768]}\\
+    Transformer & 6 blocks & \shape{[B,1025,768]}\\
+    Projector & select CLS & \shape{[B,768]}\\
+    Projector & linear, GELU, LayerNorm & \shape{[B,2048]}\\
+    Loss & L2 normalize & \shape{[B,2048]}\\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Top-level file map}
+  \centering
+  \begin{tabular}{ll}
+    \toprule
+    File & Responsibility\\
+    \midrule
+    \file{CNN.py} & Truncated ResNet-50 spatial backbone\\
+    \file{tokenizer.py} & CNN grid to transformer-token sequence\\
+    \file{transformer.py} & Attention blocks and semantic projector\\
+    \file{augmentations.py} & Benign and malicious GPU-side image transforms\\
+    \file{loss.py} & Asymmetric contrastive loss and distributed gather\\
+    \file{train.py} & Dataset, model assembly, optimization, DDP, checkpoints\\
+    \file{eval.py} & Embeddings, similarity matrices, thresholding, plots\\
+    \file{submit\_CvT\_train.sh} & Eight-GPU SLURM launcher\\
+    \file{submit\_4gpu.sh} & Four-GPU SLURM launcher\\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}
+  \centering
+  \Huge Questions?
+\end{frame}
+
+\end{document}
